@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Loomscript Bundle Contract v0",
+  "description": "剧本包合同——生成模块的输出、游玩模块的输入。前后端只认此合同，互不 import。内容层可由咖啡侧剧本替换，结构不变。",
+  "type": "object",
+  "required": ["id", "title", "version", "characters", "acts", "props", "endgame"],
+  "properties": {
+    "id": {"type": "string", "description": "剧本包唯一标识，如 macbeth-demo"},
+    "title": {"type": "string"},
+    "version": {"type": "string"},
+    "language": {"type": "string", "default": "zh"},
+    "characters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "public_sheet"],
+        "properties": {
+          "id": {"type": "string"},
+          "name": {"type": "string"},
+          "is_player": {"type": "boolean", "default": false, "description": "玩家角色 vs AI 演员"},
+          "public_sheet": {"type": "string", "description": "公开角色本（玩家可见）"},
+          "secret_sheet": {"type": "string", "description": "私密角色本（agent 视角/真相层，防剧透隔离）"},
+          "voice": {"type": "string", "description": "说话风格提示"}
+        }
+      }
+    },
+    "acts": {
+      "type": "array",
+      "minItems": 1,
+      "description": "幕结构。AI 演员只持有到当前幕为止的上下文（第三幕=前三幕世界信息+角色本前三幕）",
+      "items": {
+        "type": "object",
+        "required": ["act_id", "title", "world_info", "scenes"],
+        "properties": {
+          "act_id": {"type": "string"},
+          "title": {"type": "string"},
+          "world_info": {"type": "string", "description": "本幕世界信息"},
+          "scenes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["scene_id", "text"],
+              "properties": {
+                "scene_id": {"type": "string"},
+                "text": {"type": "string", "description": "场景叙述"},
+                "choices": {
+                  "type": "array",
+                  "description": "可选分支；空=自由对话推进",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "label"],
+                    "properties": {
+                      "id": {"type": "string"},
+                      "label": {"type": "string"},
+                      "leads_to": {"type": "string", "description": "目标 scene_id"}
+                    }
+                  }
+                },
+                "reveals": {
+                  "type": "array",
+                  "description": "本幕揭示的真相，揭示后写入对应角色的已解锁知识",
+                  "items": {"type": "string"}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "props": {
+      "type": "array",
+      "description": "道具与CG在开局预生成、放固定位置（预生成哲学）",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "act_introduced"],
+        "properties": {
+          "id": {"type": "string"},
+          "name": {"type": "string"},
+          "act_introduced": {"type": "string", "description": "首次出现幕 act_id"},
+          "cg_id": {"type": "string", "description": "关联结局CG/道具槽位（收集最小集）"}
+        }
+      }
+    },
+    "cards": {
+      "type": "array",
+      "description": "象征卡牌（塔罗类）——v1 内置趣味玩法",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "symbol"],
+        "properties": {
+          "id": {"type": "string"},
+          "name": {"type": "string"},
+          "symbol": {"type": "string"}
+        }
+      }
+    },
+    "endgame": {
+      "type": "object",
+      "required": ["conditions", "review_prompt"],
+      "properties": {
+        "conditions": {
+          "type": "array",
+          "description": "结局判定条件（评价系统=纯 demo 数据）",
+          "items": {
+            "type": "object",
+            "required": ["id", "description"],
+            "properties": {
+              "id": {"type": "string"},
+              "description": {"type": "string"},
+              "cg_id": {"type": "string"}
+            }
+          }
+        },
+        "review_prompt": {"type": "string", "description": "复盘引导：DM 总结+自由交流+进对局记忆"}
+      }
+    }
+  }
+}

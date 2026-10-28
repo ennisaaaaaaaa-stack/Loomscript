@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Loomscript Event Stream Contract v0",
+  "description": "事件流合同——游玩过程的唯一事实来源。对局只追加不修改，复盘可回放。",
+  "type": "object",
+  "required": ["session_id", "seq", "type", "ts"],
+  "properties": {
+    "session_id": {"type": "string"},
+    "seq": {"type": "integer", "minimum": 0, "description": "单调递增序号"},
+    "ts": {"type": "string", "format": "date-time"},
+    "type": {
+      "type": "string",
+      "enum": [
+        "game_start",
+        "act_begin",
+        "scene_begin",
+        "player_line",
+        "agent_line",
+        "choice",
+        "card_draw",
+        "prop_gained",
+        "reveal",
+        "act_end",
+        "game_end",
+        "review"
+      ]
+    },
+    "act_id": {"type": "string"},
+    "scene_id": {"type": "string"},
+    "character_id": {"type": "string", "description": "发言/动作归属角色"},
+    "text": {"type": "string", "description": "台词或叙述"},
+    "choice_id": {"type": "string"},
+    "card_id": {"type": "string"},
+    "prop_id": {"type": "string"},
+    "reveal_keys": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "reveal 事件：本条揭示的真相 key 列表"
+    },
+    "review_text": {"type": "string", "description": "game_end/review 事件的复盘内容"}
+  }
+}

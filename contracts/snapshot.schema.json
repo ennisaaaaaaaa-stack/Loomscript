@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Loomscript Snapshot Contract v0",
+  "description": "状态快照合同——任意时刻可序列化的对局状态。快照+事件流重放=完整恢复。断点续演与跨局记忆的基础。",
+  "type": "object",
+  "required": ["session_id", "bundle_id", "act_id", "seq", "character_states", "props_held", "cg_unlocked"],
+  "properties": {
+    "session_id": {"type": "string"},
+    "bundle_id": {"type": "string"},
+    "act_id": {"type": "string", "description": "当前幕"},
+    "scene_id": {"type": "string", "description": "当前场景"},
+    "seq": {"type": "integer", "description": "事件流指针（已应用到本快照的最后事件序号）"},
+    "character_states": {
+      "type": "object",
+      "description": "key=character_id。knowledge_unlocked 只含已揭示真相——防剧透的上下文管理以此裁剪 agent 视野",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["on_stage"],
+        "properties": {
+          "on_stage": {"type": "boolean"},
+          "lines_spoken": {"type": "integer", "minimum": 0},
+          "knowledge_unlocked": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "已揭示的真相 key。注意：不可给参与角色显式刷好感度（v2 才做数值系统）"
+          }
+        }
+      }
+    },
+    "props_held": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "持有道具 id 列表"
+    },
+    "cards_drawn": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "cg_unlocked": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "已解锁结局CG/道具槽位（收集最小集）"
+    },
+    "degradation_tier": {
+      "type": "string",
+      "enum": ["pianist", "tangwu", "semi_manual"],
+      "default": "tangwu",
+      "description": "pianist 接口位当前降级档（pianist→堂屋→半人工，同一接口进）"
+    }
+  }
+}
