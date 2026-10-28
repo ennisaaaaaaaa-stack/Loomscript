@@ -37,6 +37,6 @@
       "items": {"type": "string"},
       "description": "reveal 事件：本条揭示的真相 key 列表"
     },
-    "review_text": {"type": "string", "description": "game_end/review 事件的复盘内容"}
+    "review_text": {"type": ["string", "null"], "description": "game_end/review 事件的复盘内容（game_end 时刻可空，复盘由 review 事件补）"}
   }
 }
