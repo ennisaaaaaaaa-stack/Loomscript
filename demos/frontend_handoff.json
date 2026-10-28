@@ -1,0 +1,304 @@
+{
+ "说明": "Loomscript 前端交接盘：真实引擎录制的完整对局。UI 对着 events 摆时间线，对着 snapshot 摆当前帧，对着 bundle 摆剧本库。字段即合同。",
+ "bundle": {
+  "id": "macbeth-mini",
+  "title": "麦克白·三幕精简（对拍基线用）",
+  "version": "0.1.0",
+  "language": "zh",
+  "characters": [
+   {
+    "id": "macbeth",
+    "name": "麦克白",
+    "is_player": true,
+    "public_sheet": "考特爵士，战功赫赫，野心在袍子下面发烫",
+    "secret_sheet": "第一幕只知道预言；弑王之后，每一步都在往深渊走，直到森林移动的那天"
+   },
+   {
+    "id": "lady_m",
+    "name": "麦克白夫人",
+    "is_player": false,
+    "public_sheet": "麦克白之妻，比丈夫更硬的手",
+    "secret_sheet": "「 unsex me here」——她召来的狠，最后变成洗不掉的斑"
+   },
+   {
+    "id": "banquo",
+    "name": "班柯",
+    "is_player": false,
+    "public_sheet": "同行的将军，预言里他的子孙为王",
+    "secret_sheet": "他看得见朋友身上的变化，也看得见自己的结局"
+   }
+  ],
+  "acts": [
+   {
+    "act_id": "A1",
+    "title": "荒野·预言",
+    "world_info": "雷雨刚过的荒野，三个影子在等两个打完仗的人。",
+    "scenes": [
+     {
+      "scene_id": "A1S1",
+      "text": "女巫拦路：万福，未来的王。也万福，比王更久的父亲。",
+      "reveals": [
+       "prophecy_given"
+      ]
+     }
+    ]
+   },
+   {
+    "act_id": "A2",
+    "title": "城堡·弑王",
+    "world_info": "殷勤的东道主在自家城堡里招待了国王。",
+    "scenes": [
+     {
+      "scene_id": "A2S1",
+      "text": "幻觉的匕首指向邓肯的房门。",
+      "reveals": [
+       "dagger_seen"
+      ]
+     },
+     {
+      "scene_id": "A2S2",
+      "text": "国王死了。全城堡都在尖叫，只有一个人在洗手。",
+      "reveals": [
+       "king_dead"
+      ]
+     }
+    ]
+   }
+  ],
+  "props": [
+   {
+    "id": "p_dagger",
+    "name": "幻影匕首",
+    "act_introduced": "A2",
+    "cg_id": "cg_dagger"
+   },
+   {
+    "id": "p_crown",
+    "name": "王冠",
+    "act_introduced": "A2",
+    "cg_id": "cg_crown"
+   }
+  ],
+  "cards": [
+   {
+    "id": "tarot_tower",
+    "name": "塔",
+    "symbol": "高塔倾颓，冠冕坠落"
+   }
+  ],
+  "endgame": {
+   "conditions": [
+    {
+     "id": "end_fall",
+     "description": "森林移动，预言合拢",
+     "cg_id": "cg_birnam"
+    },
+    {
+     "id": "end_rise",
+     "description": "子孙为王（班柯线）",
+     "cg_id": "cg_lineage"
+    }
+   ],
+   "review_prompt": "DM：从预言到森林，哪一步是可以回头的？"
+  }
+ },
+ "events": [
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 0,
+   "ts": "2026-10-28T16:12:50.393633+00:00",
+   "type": "game_start"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 1,
+   "ts": "2026-10-28T16:12:50.393838+00:00",
+   "type": "act_begin",
+   "act_id": "A1"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 2,
+   "ts": "2026-10-28T16:12:50.393908+00:00",
+   "type": "scene_begin",
+   "act_id": "A1",
+   "scene_id": "A1S1"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 3,
+   "ts": "2026-10-28T16:12:50.393976+00:00",
+   "type": "player_line",
+   "character_id": "macbeth",
+   "act_id": "A1",
+   "scene_id": "A1S1",
+   "text": "你们是什么，移形的影子？我从来没见过你们。"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 4,
+   "ts": "2026-10-28T16:12:50.394064+00:00",
+   "type": "agent_line",
+   "character_id": "banquo",
+   "act_id": "A1",
+   "scene_id": "A1S1",
+   "text": "朋友，她们朝你弯腰的样子，像朝一位王弯腰。"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 5,
+   "ts": "2026-10-28T16:12:50.394149+00:00",
+   "type": "reveal",
+   "act_id": "A1",
+   "scene_id": "A1S1",
+   "reveal_keys": [
+    "prophecy_given"
+   ]
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 6,
+   "ts": "2026-10-28T16:12:50.394238+00:00",
+   "type": "card_draw",
+   "card_id": "tarot_tower",
+   "act_id": "A1"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 7,
+   "ts": "2026-10-28T16:12:50.394307+00:00",
+   "type": "act_end",
+   "act_id": "A1"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 8,
+   "ts": "2026-10-28T16:12:50.394370+00:00",
+   "type": "act_begin",
+   "act_id": "A2"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 9,
+   "ts": "2026-10-28T16:12:50.394433+00:00",
+   "type": "scene_begin",
+   "act_id": "A2",
+   "scene_id": "A2S1"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 10,
+   "ts": "2026-10-28T16:12:50.394512+00:00",
+   "type": "player_line",
+   "character_id": "macbeth",
+   "act_id": "A2",
+   "scene_id": "A2S1",
+   "text": "在我眼前的，是匕首吗？刀柄朝着我，来吧，让我抓住你。"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 11,
+   "ts": "2026-10-28T16:12:50.394608+00:00",
+   "type": "reveal",
+   "act_id": "A2",
+   "scene_id": "A2S1",
+   "reveal_keys": [
+    "dagger_seen"
+   ]
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 12,
+   "ts": "2026-10-28T16:12:50.394709+00:00",
+   "type": "prop_gained",
+   "act_id": "A2",
+   "prop_id": "p_dagger"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 13,
+   "ts": "2026-10-28T16:12:50.394807+00:00",
+   "type": "scene_begin",
+   "act_id": "A2",
+   "scene_id": "A2S2"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 14,
+   "ts": "2026-10-28T16:12:50.394893+00:00",
+   "type": "agent_line",
+   "character_id": "lady_m",
+   "act_id": "A2",
+   "scene_id": "A2S2",
+   "text": "一点水就能把我们洗干净。这么容易吗？"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 15,
+   "ts": "2026-10-28T16:12:50.394963+00:00",
+   "type": "reveal",
+   "act_id": "A2",
+   "scene_id": "A2S2",
+   "reveal_keys": [
+    "king_dead"
+   ]
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 16,
+   "ts": "2026-10-28T16:12:50.395030+00:00",
+   "type": "act_end",
+   "act_id": "A2"
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 17,
+   "ts": "2026-10-28T16:12:50.395076+00:00",
+   "type": "game_end",
+   "review_text": null
+  },
+  {
+   "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+   "seq": 18,
+   "ts": "2026-10-28T16:12:50.395122+00:00",
+   "type": "review",
+   "review_text": "DM复盘：三个女巫只说了真话，只是没说全部。从荒野到城堡，每一步都可以回头，每一步都没有——因为回头需要的不是勇气，是承认自己错了。森林会移动的，问题只是它什么时候开始走。"
+  }
+ ],
+ "snapshot": {
+  "session_id": "e5564e74-109f-4d66-a96c-c3aa615db662",
+  "bundle_id": "macbeth-mini",
+  "act_id": "A2",
+  "scene_id": "A2S2",
+  "seq": 18,
+  "character_states": {
+   "macbeth": {
+    "on_stage": true,
+    "lines_spoken": 2,
+    "knowledge_unlocked": [
+     "prophecy_given",
+     "dagger_seen",
+     "king_dead"
+    ]
+   },
+   "lady_m": {
+    "on_stage": true,
+    "lines_spoken": 1,
+    "knowledge_unlocked": []
+   },
+   "banquo": {
+    "on_stage": true,
+    "lines_spoken": 1,
+    "knowledge_unlocked": []
+   }
+  },
+  "props_held": [
+   "p_dagger"
+  ],
+  "cards_drawn": [
+   "tarot_tower"
+  ],
+  "cg_unlocked": [],
+  "degradation_tier": "tangwu"
+ }
+}
