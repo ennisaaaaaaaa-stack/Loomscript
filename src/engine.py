@@ -183,3 +183,52 @@ class Session:
             s.events.append(ev)
             s.apply(ev)
         return s
+
+
+class AgentPort:
+    """降级接口座——AI 演员的台词从哪来。三档同一接口进（架构横切项）。
+    pianist 档：接 pianist 最简版（无自学习无自驱动，带任务编排=conductor）。
+    tangwu 档：堂屋代理顶班。semi_manual 档：人工/脚本提示。
+    demo 当天按 pianist 健康度现场选档，引擎不感知差别。"""
+
+    def __init__(self, tier="tangwu"):
+        self.tier = tier
+
+    def respond(self, session, cid):
+        raise NotImplementedError
+
+
+class SemiManualPort(AgentPort):
+    """半人工档：预排练的台词表按 (角色, 场景, 已发言次数) 查表。排练过的确定性输出。"""
+
+    def __init__(self, script_lines):
+        super().__init__(tier="semi_manual")
+        self.script = script_lines  # {(cid, scene_id, nth): text}
+
+    def respond(self, session, cid):
+        st = session._s()
+        nth = st["character_states"][cid]["lines_spoken"]
+        return self.script.get((cid, st["scene_id"], nth),
+                               "……（半人工档：无预排练台词）")
+
+
+class PianistPort(AgentPort):
+    """pianist 档：调 pianist 编排层（conductor）。最简版 tideline 带跨局复盘记忆。
+    接口约定：POST {snapshot, agent_view, cue} -> {line}。联调窗前先立座，不锁实现。"""
+
+    def __init__(self, endpoint=None):
+        super().__init__(tier="pianist")
+        self.endpoint = endpoint  # None = 未接线，respond 时明确报错
+
+    def respond(self, session, cid):
+        if not self.endpoint:
+            raise ContractError("pianist 未接线：endpoint 未配置（联调窗定）")
+        import json as _json, urllib.request as _u
+        payload = _json.dumps({"snapshot": session.to_snapshot(),
+                               "agent_view": session.agent_view(cid),
+                               "cue": {"act": session._s()["act_id"],
+                                       "scene": session._s()["scene_id"]}}).encode()
+        req = _u.Request(self.endpoint, data=payload,
+                         headers={"Content-Type": "application/json"})
+        with _u.urlopen(req, timeout=30) as resp:
+            return _json.load(resp)["line"]
