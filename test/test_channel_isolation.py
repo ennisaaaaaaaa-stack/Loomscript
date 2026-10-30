@@ -43,6 +43,12 @@ s.line(lady, "夫人密语A：国王今夜宿在城堡。"[:20], channel=f"dm:{l
 s.line(macb, "（悄悄）你恨国王吗，夫人？", channel=f"dm:{lady}")  # 玩家=macbeth(is_player)
 s.line(lady, "夫人密语B：恨他把功劳给了别人。"[:20], channel=f"dm:{lady}")
 s.line(macb, "将军密语A：女巫的预言扰得我心神不宁。"[:20], channel=f"dm:{macb}")
+# 长私聊：超截断长度，DM 摘要里只允许出现截断片段，全文不得出现
+LONG_TEXT = ("班柯在荒原上听见三女巫的预言，麦克白将成为考特爵士乃至国王，"
+             "而班柯的子孙将世代为王；预言如种子入土，两人的心思各自暗中生长，"
+             "回城的路上麦克白已在盘算那顶王冠的重量。") * 2
+if "banquo" in b.chars:
+    s.line("banquo", LONG_TEXT, channel="dm:banquo")
 
 events = s.events
 
@@ -68,8 +74,12 @@ check("3-dm-digest-present",
 dg = dm_mat["private_channel_digest"][lady]
 check("4-digest-shape", dg["messages"] == 3 and dg["chars"] > 0
       and any("夫人密语" in r for r in dg["recent"]))
-full_lady = [h["text"] for h in channel_history(events, f"dm:{lady}")]
-long_full = [t for t in full_lady if len(t) > 60]  # 超过截断长度的原文
+# 超过截断长度的原文全文不得出现在 DM 材料（含 banquo 长私聊，断言非空转）
+long_full = [t for cid in set(ch[3:] for ch in
+              [ev.get("channel", "") for ev in events] if ch.startswith("dm:"))
+             for t in (h["text"] for h in channel_history(events, f"dm:{cid}"))
+             if len(t) > 60]
+assert long_full, "5-dm-no-fulltext must have long text to bite, else vacuous"
 check("5-dm-no-fulltext",
       all(t not in blob_dm for t in long_full))
 
