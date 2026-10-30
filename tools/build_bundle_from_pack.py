@@ -81,19 +81,23 @@ for act in WORLD["acts"]:
             "image_id": bg_ref,
             "reveals": reveals,
         })
+    # endgame lives top-level; ensure every act has required world text
     acts.append({
         "act_id": act["id"],
         "title": act["title"],
-        "world_info": act["world"],
+        "world_info": act["world"] or act.get("change", "") or f'{act["title"]}幕',
         "scenes": scenes,
     })
 
 # ---- props (clue cards) ----
+ACT_OF = {"A1": ["CL01","CL02"], "A2": ["CL03","CL04"], "A3": ["CL05","CL06"],
+          "A4": ["CL07","CL08"], "A5": ["CL09","CL10"]}
 props = []
 for c in CLUES:
     props.append({
         "id": c["id"],
         "name": c["title"],
+        "act_introduced": next((a for a, ids in ACT_OF.items() if c["id"] in ids), c.get("act_id", "A1")),
         "description": c["content"],
         "redline": c.get("redline", ""),
         "visibility": c.get("visibility", []),
@@ -109,18 +113,19 @@ for sc in PROPNOTE.get("symbol_cards", []):
         "symbol": sc.get("symbol", sc.get("meaning", "")),
     })
 
-# ---- endgame ----
+# ---- endgame (schema: conditions[{id,description}] + review_prompt) ----
 endgame = {
-    "rule": ENDINGS.get("rules", ""),
+    "conditions": [
+        {"id": e["id"], "description": f'{e["title"]} :: {json.dumps(e.get("condition", {}), ensure_ascii=False)[:160]}'}
+        for e in ENDINGS.get("endings", [])
+    ],
+    "review_prompt": "回头看这一路：哪一步是你自己的选择，哪一步是预言替你走的？",
     "priority": ENDINGS.get("priority", []),
     "endings": [
-        {
-            "id": e["id"],
-            "title": e["title"],
-            "condition": e.get("condition", {}),
-            "text": e.get("text", ""),
-        } for e in ENDINGS.get("endings", [])
+        {"id": e["id"], "title": e["title"], "condition": e.get("condition", {}), "text": e.get("text", "")}
+        for e in ENDINGS.get("endings", [])
     ],
+    "rules": ENDINGS.get("rules", ""),
 }
 
 # ---- assets (placeholder ids; D2 fills uris after 即梦 generation) ----

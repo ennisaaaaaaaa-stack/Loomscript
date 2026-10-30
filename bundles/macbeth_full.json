@@ -253,6 +253,7 @@
     {
       "id": "CL01",
       "name": "王命的封蜡",
+      "act_introduced": "A1",
       "description": "封赏由王命授予，送达时点晚于女巫第一次称呼考特。纸上不写未来的王位。",
       "redline": "可以证实称号的来路与时点；不可据此断言女巫能决定未来。",
       "visibility": [
@@ -260,12 +261,12 @@
         "banquo",
         "ross"
       ],
-      "release_event": "a1_cawdor",
-      "act_introduced": "A1"
+      "release_event": "a1_cawdor"
     },
     {
       "id": "CL02",
       "name": "继承人的座位",
+      "act_introduced": "A1",
       "description": "册立之后，马尔康的位置被安排在国王身旁；同袍的功勋与王位继承并不是一回事。",
       "redline": "只能指向公开的继承秩序；不可暴露夫妻密谋。",
       "visibility": [
@@ -275,70 +276,70 @@
         "malcolm",
         "ross"
       ],
-      "release_event": "a1_heir",
-      "act_introduced": "A1"
+      "release_event": "a1_heir"
     },
     {
       "id": "CL03",
       "name": "被带回又放回的匕首",
+      "act_introduced": "A2",
       "description": "案发后在寝室附近取得的匕首上可见暗红污迹。谁曾经移动它，需要证词解释。",
       "redline": "不可写现代指纹或DNA结论；不自动证明麦克白或夫人是凶手。",
       "visibility": [
         "macduff",
         "banquo"
       ],
-      "release_event": "a2_clues",
-      "act_introduced": "A2"
+      "release_event": "a2_clues"
     },
     {
       "id": "CL04",
       "name": "敲门前的动静",
+      "act_introduced": "A2",
       "description": "门房回忆自己接连听见敲门。有人声称此前听到脚步，但夜色中没有认出面孔。",
       "redline": "标为回忆与流言；不能精确补写原作未给的分钟数或目击身份。",
       "visibility": [
         "macduff",
         "banquo"
       ],
-      "release_event": "a2_clues",
-      "act_introduced": "A2"
+      "release_event": "a2_clues"
     },
     {
       "id": "CL05",
       "name": "夜路上的熄火处",
+      "act_introduced": "A3",
       "description": "路边留下一截熄灭的火把与杂乱足迹，至少有离开道路的步痕。它表明这里发生过冲突，不给出逃离者姓名。",
       "redline": "玩家若未获刺客报告，不可自动知弗里恩斯逃脱；不能把血迹变成全知说明。",
       "visibility": [
         "macbeth"
       ],
-      "release_event": "a3_report",
-      "act_introduced": "A3"
+      "release_event": "a3_report"
     },
     {
       "id": "CL06",
       "name": "宴会的空席",
+      "act_introduced": "A3",
       "description": "几位宾客确认：王指向的座位在他们眼中空着。有人只记下他的退步，没有记下他口中的名字。",
       "redline": "仅确认共同目击；不可给公共角色展示鬼魂图或确认鬼魂客观存在。",
       "visibility": [
         "lady_macbeth",
         "ross"
       ],
-      "release_event": "a3_banquet",
-      "act_introduced": "A3"
+      "release_event": "a3_banquet"
     },
     {
       "id": "CL07",
       "name": "预言原句的缺口",
+      "act_introduced": "A4",
       "description": "三条话语被分开记录：小心麦克德夫；妇人所生者；森林移动。文本没有写下你自行理解的“绝对安全”。",
       "redline": "仅麦克白与女巫可读；不解释剖腹或树枝，直到A5相应事件。",
       "visibility": [
         "macbeth"
       ],
-      "release_event": "a4_oracle",
-      "act_introduced": "A4"
+      "release_event": "a4_oracle"
     },
     {
       "id": "CL08",
       "name": "费辅的断门闩",
+      "act_introduced": "A4",
       "description": "带回来的门闩裂片并不能重现屋内最后几秒，但确认伤害已经越过战场，进入家宅。",
       "redline": "噩耗确认前隐藏；不展示儿童伤害细节，不伪造家人遗言。",
       "visibility": [
@@ -346,23 +347,23 @@
         "malcolm",
         "ross"
       ],
-      "release_event": "a4_news",
-      "act_introduced": "A4"
+      "release_event": "a4_news"
     },
     {
       "id": "CL09",
       "name": "侍女的有限记录",
+      "act_introduced": "A5",
       "description": "侍女只愿确认看见反复擦手与听见断续言语，拒绝把未完整听到的句子补成供认。",
       "redline": "梦游是观察，罪责是解释；不能据此补齐所有暗杀细节。",
       "visibility": [
         "macbeth"
       ],
-      "release_event": "a5_queen_news",
-      "act_introduced": "A5"
+      "release_event": "a5_queen_news"
     },
     {
       "id": "CL10",
       "name": "带着步痕的枝叶",
+      "act_introduced": "A5",
       "description": "枝条底端有新折口，叶面潮湿；枝条被放下后，后面露出士兵的脚步与队列。",
       "redline": "展示之后才能解释森林移动；不画树木长腿或自行行走。",
       "visibility": [
@@ -370,8 +371,7 @@
         "macduff",
         "ross"
       ],
-      "release_event": "a5_branches",
-      "act_introduced": "A5"
+      "release_event": "a5_branches"
     }
   ],
   "cards": [
@@ -392,6 +392,21 @@
     }
   ],
   "endgame": {
+    "conditions": [
+      {
+        "id": "END01",
+        "description": "留下证言 :: {\"public_testimony_count_min\": 3, \"archive_preserved\": true}"
+      },
+      {
+        "id": "END02",
+        "description": "只换王冠 :: {\"fallback_when_END01_false\": true, \"archive_preserved\": true}"
+      },
+      {
+        "id": "END03",
+        "description": "被封住的档案 :: {\"archive_preserved\": false}"
+      }
+    ],
+    "review_prompt": "回头看这一路：哪一步是你自己的选择，哪一步是预言替你走的？",
     "priority": [
       "END03",
       "END01",
@@ -425,21 +440,7 @@
         "text": "新的名号被宣告，旧日的证言被封存。你们已经赢得这一场战事，却把怎样解释它的权力，再次交给了王座。"
       }
     ],
-    "review_prompt": "回头看这一路：哪一步是你自己的选择，哪一步是预言替你走的？",
-    "conditions": [
-      {
-        "id": "END01",
-        "description": "留下证言 :: {\"public_testimony_count_min\": 3, \"archive_preserved\": true}"
-      },
-      {
-        "id": "END02",
-        "description": "只换王冠 :: {\"fallback_when_END01_false\": true, \"archive_preserved\": true}"
-      },
-      {
-        "id": "END03",
-        "description": "被封住的档案 :: {\"archive_preserved\": false}"
-      }
-    ]
+    "rules": "archive_preserved为马尔康在A5的有权选择；public_testimony_count为六名玩家在各自存活窗口内明确公开且引擎确认的唯一署名人数，重复提交只计一次；死亡不能阻止已有证词留存。所有结局保留原著死亡与继位事实。"
   },
   "assets": [
     {
