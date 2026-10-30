@@ -20,6 +20,7 @@
         "card_draw",
         "prop_gained",
         "reveal",
+        "death",
         "clue_found",
         "journal_push",
         "act_end",
@@ -47,6 +48,7 @@
       "description": "与 reveal_keys 一一对应的展示文字，揭示瞬间随事件下发（不进 bundle 预发货，防 F12 剧透）"
     },
     "clue_id": {"type": "string", "description": "clue_found 事件：搜证所得线索 id"},
+    "death_id": {"type": "string", "description": "death 事件：指向 bundle.deaths[].id 的死亡定义 key。死亡由引擎在进入指定场景时确定性触发，进事件流可重放"},
     "journal_text": {"type": "string", "description": "journal_push 事件：DM 手账推送内容"},
     "error_code": {"type": "string", "description": "error 事件：机器可读错误码（如 dm_degraded / agent_unreachable），前端按码出提示"},
     "review_text": {"type": ["string", "null"], "description": "game_end/review 事件的复盘内容（game_end 时刻可空，复盘由 review 事件补）"}

@@ -129,6 +129,22 @@
         },
         "review_prompt": {"type": "string", "description": "复盘引导：DM 总结+自由交流+进对局记忆"}
       }
+    },
+    "deaths": {
+      "type": "array",
+      "description": "死亡定义表（数据驱动、确定性）。引擎进入 scene.deaths 所列场景时按 id 触发 death 事件并翻转状态位；无随机、无时间触发，重放一致",
+      "items": {
+        "type": "object",
+        "required": ["id", "character_id", "act_id", "scene_id", "description"],
+        "properties": {
+          "id": {"type": "string", "description": "死亡定义唯一 key，death 事件以 death_id 引用"},
+          "character_id": {"type": "string", "description": "死者角色 id（须在 characters 表内）"},
+          "act_id": {"type": "string", "description": "死亡发生幕"},
+          "scene_id": {"type": "string", "description": "死亡发生场景——进入该场景即触发（对应原作节拍）"},
+          "description": {"type": "string", "description": "死亡叙述（death 事件 text，观演者与复盘可见）"},
+          "observer_brief": {"type": "string", "description": "死后观演视角简报：转观察者后以什么身份看戏（可省，缺省用通用观演词）"}
+        }
+      }
     }
   }
 }

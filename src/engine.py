@@ -34,6 +34,7 @@ class Bundle:
         self.data = data
         self.acts = {a["act_id"]: a for a in data["acts"]}
         self.chars = {c["id"]: c for c in data["characters"]}
+        self.deaths = {d["id"]: d for d in data.get("deaths", [])}
 
     @classmethod
     def load(cls, path):
@@ -92,6 +93,11 @@ class Session:
                 for cid, cs in self._s()["character_states"].items():
                     if self.bundle.chars[cid].get("is_player"):
                         cs["knowledge_unlocked"].append(k)  # 真相揭示给玩家视角
+        elif t == "death":
+            # 死亡=确定性状态翻转：alive->False。事件在流里，重放即复现
+            cid = ev["character_id"]
+            self._s()["character_states"][cid]["alive"] = False
+            self._s()["character_states"][cid]["on_stage"] = False
         elif t == "prop_gained":
             self._s()["props_held"].append(ev["prop_id"])
         elif t == "card_draw":
@@ -103,7 +109,7 @@ class Session:
             "bundle_id": self.bundle.data["id"],
             "act_id": None, "scene_id": None, "seq": -1,
             "character_states": {
-                c["id"]: {"on_stage": True, "lines_spoken": 0,
+                c["id"]: {"on_stage": True, "alive": True, "lines_spoken": 0,
                           "knowledge_unlocked": []}
                 for c in self.bundle.data["characters"]},
             "props_held": [], "cards_drawn": [], "cg_unlocked": [],
@@ -119,8 +125,29 @@ class Session:
 
     def enter_scene(self, scene_id):
         self.emit(type="scene_begin", act_id=self._s()["act_id"], scene_id=scene_id)
+        self._settle_deaths(scene_id)
+
+    def _settle_deaths(self, scene_id):
+        """死亡结算：scene.deaths 按定义表确定性触发。进场景即结算（对应原作
+        节拍），无随机无时间；重复进入同一场景不重复杀（事件流里查重）。"""
+        scene = self.bundle.scenes(self._s()["act_id"])[scene_id]
+        for did in scene.get("deaths", []):
+            if any(e["type"] == "death" and e.get("death_id") == did
+                   for e in self.events):
+                continue  # 幂等：同一定义只死一次
+            d = self.bundle.deaths[did]
+            self.emit(type="death", death_id=did, character_id=d["character_id"],
+                      act_id=d["act_id"], scene_id=d["scene_id"],
+                      channel="main", text=d["description"])
 
     def line(self, cid, text, channel="main"):
+        # 死者不以角色身份进推进通道：main 拒绝（观演者与 DM/复盘的交流
+        # 走 DM 主框或 channel，不占剧情推进位）
+        if (cid in self._s()["character_states"]
+                and not self._s()["character_states"][cid]["alive"]
+                and channel == "main"):
+            raise ContractError(
+                f"character {cid} is dead (observer); cannot speak in main")
         t = "player_line" if self.bundle.chars[cid].get("is_player") else "agent_line"
         self.emit(type=t, character_id=cid, act_id=self._s()["act_id"],
                   scene_id=self._s()["scene_id"], text=text, channel=channel)
@@ -150,13 +177,28 @@ class Session:
         c = self.bundle.chars[cid]
         acts = self.bundle.data["acts"]
         i = [a["act_id"] for a in acts].index(self._s()["act_id"])
+        alive = self._s()["character_states"][cid]["alive"]
         ctx = {"world": [a["world_info"] for a in acts[: i + 1]],
                "public_sheet": c["public_sheet"],
                "secret_sheet": c.get("secret_sheet", "")[: 200 * (i + 1)],
                "knowledge_unlocked":
                    self._s()["character_states"][cid]["knowledge_unlocked"],
+               "alive": alive,
                "note": "AI演员不能知道还没演到的真相"}
+        if not alive:
+            # 观演视角：不退场，改看戏。幕切片与防剧透线不变（观演≠全知）
+            ctx["observer"] = True
+            ctx["observer_brief"] = self._observer_brief(cid)
+            ctx["note"] = ("你已退场，转为观察者视角看戏。"
+                           "AI演员不能知道还没演到的真相。")
         return ctx
+
+    def _observer_brief(self, cid):
+        for d in self.bundle.deaths.values():
+            if d["character_id"] == cid:
+                return d.get("observer_brief",
+                             "肉身已谢幕，你的目光留在台上——只看，不再推进。")
+        return "肉身已谢幕，你的目光留在台上——只看，不再推进。"
 
     # ---- 快照 ----------------------------------------------------------
     def to_snapshot(self):

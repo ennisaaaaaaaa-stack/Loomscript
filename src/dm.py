@@ -22,6 +22,12 @@ def assemble_character_prompt(bundle, act_id, character_id, events, channel_hist
 
     隔离保证：secret_sheet 按幕切片（第 i 幕只给前 i 幕的量），后面幕的秘密
     物理上不进入材料——不是靠 prompt 恳求，是靠数据结构切掉。
+
+    死亡转观演（wt/death）：材料从事件流结算死者状态。死后的角色不再以
+    角色身份推进剧情——材料切 observer 形态：知道什么就让他看什么，
+    幕切片与防剧透线对观演者同样成立（观演≠全知）。
+    死讯本身也是信息：其他角色的材料只在 death 事件已经发生后才含死讯，
+    触发前物理上不出现（见材料组装——只回放已发生事件）。
     """
     acts = bundle.data["acts"]
     i = next(idx for idx, a in enumerate(acts) if a["act_id"] == act_id)
@@ -41,19 +47,38 @@ def assemble_character_prompt(bundle, act_id, character_id, events, channel_hist
         "law": "你不能知道还没演到的真相。材料里没有的就是你不知道的。",
     }
 
-    # 从事件结算当前场景与已解锁知识（纯读，不改状态）
+    # 从事件结算当前场景、已解锁知识与本角色生死（纯读，不改状态）
+    dead = False
     for ev in events:
         if ev["type"] == "scene_begin" and ev.get("act_id") == act_id:
             material["current_scene"] = ev["scene_id"]
         elif ev["type"] == "reveal":
             for k in ev.get("reveal_keys", []):
                 material["knowledge_unlocked"].append(k)
+        elif ev["type"] == "death" and ev.get("character_id") == character_id:
+            dead = True
 
     scene_id = material["current_scene"]
     if scene_id is not None:
         sc = bundle.scenes(act_id).get(scene_id)
         if sc:
             material["scene_text"] = sc["text"]
+
+    # ---- 观演形态（死亡后） -------------------------------------------
+    if dead:
+        d = next((x for x in bundle.deaths.values()
+                  if x["character_id"] == character_id), None)
+        material["role"] = "observer_agent"
+        material["mode"] = "observer"
+        material["you_are"]["status"] = "observer"
+        material["observer_brief"] = (
+            d.get("observer_brief",
+                  "肉身已谢幕，你的目光留在台上——只看，不再推进。")
+            if d else "肉身已谢幕，你的目光留在台上——只看，不再推进。")
+        material["death_seen"] = True
+        material["law"] = ("你已退场，转为观察者视角看戏：不再以角色身份推进剧情、"
+                           "不替在场者做决定；你仍不能知道还没演到的真相——"
+                           "材料里没有的就是你不知道的。")
     return material
 
 
