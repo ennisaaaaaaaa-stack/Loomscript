@@ -44,6 +44,7 @@
               "properties": {
                 "scene_id": {"type": "string"},
                 "text": {"type": "string", "description": "场景叙述"},
+                "image_id": {"type": "string", "description": "场景配图 id，指向 bundle.assets 列表；无图场景可省略"},
                 "choices": {
                   "type": "array",
                   "description": "可选分支；空=自由对话推进",
@@ -92,6 +93,20 @@
           "id": {"type": "string"},
           "name": {"type": "string"},
           "symbol": {"type": "string"}
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "description": "预生成资产清单（图片等），开局前已生成完毕，对局中只按 id 引用。scene.image_id / props.cg_id / cards 的卡面均指向此表",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "uri"],
+        "properties": {
+          "id": {"type": "string"},
+          "kind": {"type": "string", "enum": ["scene_image", "cg", "card_art", "prop_icon"]},
+          "uri": {"type": "string", "description": "相对路径或 URL"},
+          "prompt": {"type": "string", "description": "生成提示词（审计用，可省）"}
         }
       }
     },

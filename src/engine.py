@@ -119,10 +119,10 @@ class Session:
     def enter_scene(self, scene_id):
         self.emit(type="scene_begin", act_id=self._s()["act_id"], scene_id=scene_id)
 
-    def line(self, cid, text):
+    def line(self, cid, text, channel="main"):
         t = "player_line" if self.bundle.chars[cid].get("is_player") else "agent_line"
         self.emit(type=t, character_id=cid, act_id=self._s()["act_id"],
-                  scene_id=self._s()["scene_id"], text=text)
+                  scene_id=self._s()["scene_id"], text=text, channel=channel)
 
     def fire_reveals(self, scene_id):
         """场景内的揭示一次性结算。"""

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Loomscript Generation Progress Contract v0",
+  "description": "生成流水线进度事件——前端预览生成页的数据源。SSE 逐条推送；validation.issues 按 stage 汇报，error 级别的 issue 不中断流程，生成器尽力降级，done 时 bundle 附上。",
+  "type": "object",
+  "required": ["job_id", "stage", "status", "ts"],
+  "properties": {
+    "job_id": {"type": "string", "description": "一次生成任务的标识，进度事件按 job 聚合"},
+    "stage": {
+      "type": "string",
+      "enum": ["ingest", "act_structure", "characters", "scenes", "props_assets", "cards", "endgame", "done"],
+      "description": "流水线阶段：导入解析→幕结构→角色→场景→道具与资产→卡牌→结局→完成"
+    },
+    "status": {"type": "string", "enum": ["running", "ok", "failed", "skipped"]},
+    "progress": {"type": "number", "minimum": 0, "maximum": 1, "description": "本阶段内进度 0-1，前端进度条逐项点亮用"},
+    "message": {"type": "string", "description": "进度条下方人类可读文案，如「正在拆幕（2/5）」"},
+    "validation": {
+      "type": "object",
+      "description": "本阶段结束时的校验结果；无问题可整个省略",
+      "properties": {
+        "issues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["severity", "code", "message"],
+            "properties": {
+              "severity": {"type": "string", "enum": ["error", "warning", "info"]},
+              "code": {"type": "string", "description": "机器可读问题码，如 act_gap / characters_missing / scene_text_empty"},
+              "message": {"type": "string", "description": "人类可读问题描述（前端可直接展示）"},
+              "stage": {"type": "string", "description": "问题归属阶段，缺省=当前事件 stage"},
+              "auto_fixed": {"type": "boolean", "default": false, "description": "生成器是否已自动修复（修复后仍上报，前端可显示「已自动处理」）"}
+            }
+          }
+        }
+      }
+    },
+    "bundle": {"type": "object", "description": "stage=done 时附上完整 bundle（符合 bundle.schema.json）"}
+  }
+}

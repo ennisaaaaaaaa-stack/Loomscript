@@ -20,14 +20,18 @@
         "card_draw",
         "prop_gained",
         "reveal",
+        "clue_found",
+        "journal_push",
         "act_end",
         "game_end",
-        "review"
+        "review",
+        "error"
       ]
     },
     "act_id": {"type": "string"},
     "scene_id": {"type": "string"},
     "character_id": {"type": "string", "description": "发言/动作归属角色"},
+    "channel": {"type": "string", "description": "消息通道：main（公屏）/ dm:<character_id>（私聊侧栏）。agent_line/player_line 均可带，缺省=main"},
     "text": {"type": "string", "description": "台词或叙述"},
     "choice_id": {"type": "string"},
     "card_id": {"type": "string"},
@@ -37,6 +41,13 @@
       "items": {"type": "string"},
       "description": "reveal 事件：本条揭示的真相 key 列表"
     },
+    "reveal_texts": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "与 reveal_keys 一一对应的展示文字，揭示瞬间随事件下发（不进 bundle 预发货，防 F12 剧透）"
+    },
+    "clue_id": {"type": "string", "description": "clue_found 事件：搜证所得线索 id"},
+    "journal_text": {"type": "string", "description": "journal_push 事件：DM 手账推送内容"},
     "review_text": {"type": ["string", "null"], "description": "game_end/review 事件的复盘内容（game_end 时刻可空，复盘由 review 事件补）"}
   }
 }
