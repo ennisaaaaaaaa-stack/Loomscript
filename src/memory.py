@@ -25,6 +25,7 @@ import math
 import os
 import re
 import sqlite3
+import threading
 import time
 import urllib.request
 from collections import Counter
@@ -118,10 +119,15 @@ class MemoryStore:
     def __init__(self, path: str | Path = "dm_memory.db", embedder: str | None = None):
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.db = sqlite3.connect(self.path)
+        # FastAPI 同步端点跑在 anyio 线程池——建局/推幕/检索可能落在不同
+        # 工作线程。check_same_thread=False + 进程内锁串行化（单写者，
+        # 跨局共享一个库文件，demo 量级足够；不上 WAL/队列，KISS）。
+        self._lock = threading.Lock()
+        self.db = sqlite3.connect(self.path, check_same_thread=False)
         self.db.row_factory = sqlite3.Row
-        self.db.executescript(_DDL)
-        self.db.commit()
+        with self._lock:
+            self.db.executescript(_DDL)
+            self.db.commit()
         # embedder: HTTP endpoint（POST {"text": ...} -> {"embedding": [...]});
         # None 时纯本地 TF-IDF。demo 默认 None——零外部依赖先跑通。
         self.embedder = embedder or os.environ.get("LOOM_MEMORY_EMBEDDER")
@@ -139,33 +145,36 @@ class MemoryStore:
         weight = round(
             0.35 * (importance / 5) + 0.25 * (emotional / 5)
             + 0.2 * (recurrence / 5) + 0.2 * (unresolved / 5), 4)
-        cur = self.db.execute(
-            "INSERT INTO narratives(content, ntype, tags, created_at,"
-            " gesture, context_layer, moment, cognition_direction,"
-            " related_entities, source_links, weight,"
-            " importance, emotional, recurrence, unresolved)"
-            " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-            (content, ntype, json.dumps(tags or [], ensure_ascii=False), _now(),
-             gesture, context_layer, moment, cognition_direction,
-             json.dumps(related_entities or [], ensure_ascii=False),
-             json.dumps(source_links or [], ensure_ascii=False), weight,
-             importance, emotional, recurrence, unresolved))
-        self.db.commit()
+        with self._lock:
+            cur = self.db.execute(
+                "INSERT INTO narratives(content, ntype, tags, created_at,"
+                " gesture, context_layer, moment, cognition_direction,"
+                " related_entities, source_links, weight,"
+                " importance, emotional, recurrence, unresolved)"
+                " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                (content, ntype, json.dumps(tags or [], ensure_ascii=False), _now(),
+                 gesture, context_layer, moment, cognition_direction,
+                 json.dumps(related_entities or [], ensure_ascii=False),
+                 json.dumps(source_links or [], ensure_ascii=False), weight,
+                 importance, emotional, recurrence, unresolved))
+            self.db.commit()
         return cur.lastrowid
 
     def write_profile(self, entity: str, ptype: str, content: str) -> None:
-        self.db.execute(
-            "INSERT INTO profiles(entity, ptype, content, updated_at)"
-            " VALUES(?,?,?,?)"
-            " ON CONFLICT(entity, ptype) DO UPDATE SET"
-            " content=excluded.content, updated_at=excluded.updated_at",
-            (entity, ptype, content, _now()))
-        self.db.commit()
+        with self._lock:
+            self.db.execute(
+                "INSERT INTO profiles(entity, ptype, content, updated_at)"
+                " VALUES(?,?,?,?)"
+                " ON CONFLICT(entity, ptype) DO UPDATE SET"
+                " content=excluded.content, updated_at=excluded.updated_at",
+                (entity, ptype, content, _now()))
+            self.db.commit()
 
     # ---- 读 ----------------------------------------------------------------
     def narratives(self) -> list[dict]:
-        rows = self.db.execute(
-            "SELECT * FROM narratives ORDER BY id DESC").fetchall()
+        with self._lock:
+            rows = self.db.execute(
+                "SELECT * FROM narratives ORDER BY id DESC").fetchall()
         return [dict(r) for r in rows]
 
     def _fmt(self, r: dict) -> dict:
@@ -182,8 +191,10 @@ class MemoryStore:
     def retrieve(self, query: str, k: int = 5) -> list[dict]:
         """跨局检索。默认 TF-IDF；配了 embedder 走向量 cosine。接口唯一，
         升级不改调用方。"""
-        rows = self.db.execute(
-            "SELECT * FROM narratives ORDER BY id DESC LIMIT 1000").fetchall()
+        rows = None
+        with self._lock:
+            rows = self.db.execute(
+                "SELECT * FROM narratives ORDER BY id DESC LIMIT 1000").fetchall()
         docs = [dict(r) for r in rows]
         if not docs:
             return []
@@ -280,17 +291,19 @@ class MemoryStore:
     def player_brief(self, top: int = 5) -> dict:
         """关于这位玩家：profiles 常驻画像 + 近期高权重叙事。第二局 DM 的
         user_profile 就是这个——开场白零差异化，「记得」织进主持词与选本。"""
-        prof = self.db.execute(
-            "SELECT ptype, content FROM profiles WHERE entity='player'"
-            " ORDER BY ptype").fetchall()
+        with self._lock:
+            prof = self.db.execute(
+                "SELECT ptype, content FROM profiles WHERE entity='player'"
+                " ORDER BY ptype").fetchall()
+            games = self.db.execute(
+                "SELECT COUNT(*) FROM narratives"
+                " WHERE ntype='game_marker'").fetchone()[0]
         nar = self.narratives()[:20]
         nar.sort(key=lambda r: -(r["weight"] or 0))
         return {
             "profiles": {r["ptype"]: r["content"] for r in prof},
             "recent_memories": [self._fmt(r) for r in nar[:top]],
-            "games_played": self.db.execute(
-                "SELECT COUNT(*) FROM narratives"
-                " WHERE ntype='game_marker'").fetchone()[0],
+            "games_played": games,
         }
 
 
