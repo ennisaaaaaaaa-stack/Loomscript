@@ -191,22 +191,33 @@ class DM:
             kw["scene_id"] = session._s()["scene_id"]
         return kw
 
+    # -- L3 降级（B案）：预生成台词取用 ---------------------------------------
+    def _pg(self, key, act_id=None):
+        """从 bundle.dm_lines 取预生成台词；缺省 None（回落引擎模板）。"""
+        lines = self.bundle.data.get("dm_lines") or {}
+        if act_id:
+            return (lines.get("act_report") or {}).get(act_id)
+        return lines.get(key)
+
     def opening(self, session: Session):
-        title = self.bundle.data["title"]
-        chars = "、".join(c["name"] for c in self.bundle.data["characters"]
-                         if not c.get("is_player"))
-        text = (f"欢迎来到《{title}》。我是主持人，全程陪着你。"
-                f"今晚与你同台的演员：{chars}。"
-                f"你可以自由发言推进剧情，可以打开私聊窗找某位角色密谈，"
-                f"也可以随时和我聊。想先听我提议一种玩法吗？")
+        text = self._pg("opening")
+        if not text:
+            title = self.bundle.data["title"]
+            chars = "、".join(c["name"] for c in self.bundle.data["characters"]
+                             if not c.get("is_player"))
+            text = (f"欢迎来到《{title}》。我是主持人，全程陪着你。"
+                    f"今晚与你同台的演员：{chars}。"
+                    f"你可以自由发言推进剧情，可以打开私聊窗找某位角色密谈，"
+                    f"也可以随时和我聊。想先听我提议一种玩法吗？")
         return session.emit(type="agent_line", character_id=DM_ID,
                             channel="main", text=text, **self._stage(session))
 
     def propose_play(self, session: Session):
-        """提议玩法（DM 三件套之三）。"""
-        text = ("提议玩法：跟着台词的节奏走，该说话时说话；"
-                "每个场景结束我会推幕并结算揭示。随时可以密谈——"
-                "有些话只有私聊里说得出口。")
+        """提议玩法（DM 三件套之三）。L3：有预生成则优先。"""
+        text = self._pg("propose_play") or (
+            "提议玩法：跟着台词的节奏走，该说话时说话；"
+            "每个场景结束我会推幕并结算揭示。随时可以密谈——"
+            "有些话只有私聊里说得出口。")
         return session.emit(type="agent_line", character_id=DM_ID,
                             channel="main", text=text, **self._stage(session))
 
@@ -236,9 +247,10 @@ class DM:
                 kw["interlude"] = inter
             session.emit(**kw)
             session.emit(type="act_begin", act_id=nxt)
+            report = self._pg("act_report", act_id=nxt) or (
+                f"—— 第{len(acts[:i+1])+1}幕 · {title} ——")
             session.emit(type="agent_line", character_id=DM_ID, channel="main",
-                         text=f"—— 第{len(acts[:i+1])+1}幕 · {title} ——",
-                         act_id=nxt)
+                         text=report, act_id=nxt)
             self._archive(session, act_ended=acts[i])
         else:
             inter = _interlude(acts[i])
@@ -281,9 +293,15 @@ class DM:
 
     # -- DM 台词（演出层：走 port，可降级） -----------------------------------
     def speak(self, session: Session):
-        return self.port.respond(session, DM_ID)
+        line = self.port.respond(session, DM_ID)
+        if line.startswith("……（半人工档：无预排练台词）"):
+            line = self._pg("fallback") or line  # L3：预生成兜底台词优先
+        return line
 
     # -- 复盘引导（game_end 后的 review 事件；自由交流归 DM） ------------------
     def review(self, session: Session, review_text):
+        """复盘引导。review_text 为空且 L3 有预生成复盘词时用预生成。"""
+        if not review_text:
+            review_text = self._pg("review")
         return session.emit(type="review", review_text=review_text,
                             act_id=session._s()["act_id"] if session.state else None)

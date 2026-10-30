@@ -222,9 +222,24 @@
     }
    }
   },
+  "dm_lines": {
+    "type": "object",
+    "description": "L3 降级（B案）：预生成 DM 台词烤进剧本包。存在时 DM 结构性台词（开场白/玩法提议/报幕/复盘引导）全部从此取，纯合同零 LLM——「预生成骨架+现场表演」的终态降级；缺省回落引擎模板（旧 bundle 兼容）",
+    "properties": {
+      "opening": {"type": "string", "description": "开场白"},
+      "propose_play": {"type": "string", "description": "玩法提议"},
+      "act_report": {
+        "type": "object",
+        "description": "各幕报幕词：{act_id: 台词}",
+        "additionalProperties": {"type": "string"}
+      },
+      "review": {"type": "string", "description": "复盘引导词"},
+      "fallback": {"type": "string", "description": "自由交流兜底台词（semi_manual 档无预排练条目时）"}
+    }
+  },
   "endgame": {
-      "type": "object",
-      "required": ["conditions", "review_prompt"],
+    "type": "object",
+    "required": ["conditions", "review_prompt"],
       "properties": {
         "conditions": {
           "type": "array",
