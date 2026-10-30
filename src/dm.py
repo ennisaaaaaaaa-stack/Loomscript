@@ -136,11 +136,13 @@ class DM:
     是确定性的，不走 LLM——「预生成骨架+现场表演」的分工线。
     """
 
-    def __init__(self, bundle, port: AgentPort, dm_memory=None, user_profile=None):
+    def __init__(self, bundle, port: AgentPort, dm_memory=None, user_profile=None,
+                 distill_llm=None):
         self.bundle = bundle
         self.port = port  # DM 台词档位（semi_manual 预排练可全离线跑）
         self.memory = dm_memory or {}
         self.user_profile = user_profile or {}
+        self.distill_llm = distill_llm  # None=journal 原文入库（无 LLM 档）
         self.journal = []  # DM 手账（journal_push 的原料）
 
     # -- 开场白 + 玩法提议（结构性，模板生成；有 port 则用 port 演出） -------
@@ -203,16 +205,26 @@ class DM:
 
     # -- 记忆回流（10/30拍板：act_end 写一次 + game_end 全量写一次） ----------
     def _archive(self, session: Session, act_ended=None, final=False):
-        """存档点写入。后台 session 写不占主 agent 上下文——这里只产出
-        待写材料，真正的 tideline 写入由后端异步消费（对局内零阻塞）。"""
+        """存档点写入。后台 session 写不占主 agent 上下文。
+
+        两种排水：dm_memory 是 MemoryStore（tideline 骨架）→ 原地入账
+        （无 LLM 配置时 journal 原文入库，有 LLM 时后台蒸馏）；
+        是普通 dict（测试/旧用法）→ 挂 archives 列表，由调用方消费。"""
         entry = {
             "kind": "act_archive" if not final else "game_archive",
             "act_ended": act_ended,
+            "title": self.bundle.data.get("title", ""),
             "snapshot": session.to_snapshot(),
             "events_upto": len(session.events),
             "journal": list(self.journal),
         }
-        self.memory.setdefault("archives", []).append(entry)
+        ingest = getattr(self.memory, "ingest_archive", None)
+        if callable(ingest):
+            ingest(entry, self.distill_llm)
+            if final:  # 局末手账清零：下一局 DM 重新记（库里的才是记忆）
+                self.journal = []
+        else:
+            self.memory.setdefault("archives", []).append(entry)
         return entry
 
     # -- DM 台词（演出层：走 port，可降级） -----------------------------------

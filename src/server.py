@@ -30,9 +30,11 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 from engine import Bundle, Session, SemiManualPort, ContractError  # noqa: E402
 from dm import DM, assemble_character_prompt, assemble_dm_prompt, DM_ID  # noqa: E402
+from memory import MemoryStore  # noqa: E402
 
 BUNDLES_DIR = ROOT / "bundles"
 SESSIONS_DIR = ROOT / "sessions"
+MEMORY_DIR = ROOT / "dm_memory"  # DM 记忆库：跨局持久（demo 第二局「记得你」）
 
 app = FastAPI(title="Loomscript backend v0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"],
@@ -45,11 +47,17 @@ BUNDLE_CACHE = {}
 class GameRoom:
     """一局在内存里的家：Session + DM + 事件持久化 + 锁。"""
 
-    def __init__(self, bundle: Bundle, tier: str, port_kind: str):
+    def __init__(self, bundle: Bundle, tier: str, port_kind: str,
+                 memory_store: MemoryStore | None = None,
+                 distill_llm=None):
         self.bundle = bundle
         self.session = Session(bundle, tier=tier)
-        self.dm = DM(bundle, SemiManualPort({}), dm_memory={},
-                     user_profile={})
+        self.store = memory_store  # None=测试态（dm.memory 保持 dict）
+        self.dm = DM(bundle, SemiManualPort({}),
+                     dm_memory=memory_store or {},
+                     user_profile=(memory_store.player_brief()
+                                   if memory_store else {}),
+                     distill_llm=distill_llm)
         self.port_kind = port_kind
         self.lock = threading.Lock()
         self.jsonl = SESSIONS_DIR / f"{self.session.session_id}.jsonl"
@@ -103,8 +111,13 @@ def get_bundle(bundle_id: str) -> Bundle:
 @app.post("/games")
 def create_game(body: dict):
     bundle = get_bundle(body.get("bundle_id", "macbeth_mini"))
+    store = None
+    if body.get("memory", True):  # 默认开记忆：demo 第二局有「记得你」
+        memory_db = MEMORY_DIR / "dm_memory.db"
+        store = MemoryStore(memory_db)
     room = GameRoom(bundle, tier=body.get("tier", "tangwu"),
-                    port_kind=body.get("port", "semi_manual"))
+                    port_kind=body.get("port", "semi_manual"),
+                    memory_store=store)
     GAMES[room.session.session_id] = room
     return {"session_id": room.session.session_id,
             "snapshot": room.session.to_snapshot(),
@@ -179,7 +192,8 @@ def enter_scene(sid: str, body: dict):
         return {"events": new, "snapshot": room.session.to_snapshot()}
 
 
-DM_ACTIONS = ("opening", "propose_play", "deal_cards", "advance_act", "review")
+DM_ACTIONS = ("opening", "propose_play", "deal_cards", "advance_act",
+              "review", "note")
 
 
 @app.post("/games/{sid}/dm")
@@ -200,6 +214,8 @@ def dm_action(sid: str, body: dict):
             room.dm.advance_act(room.session)
         elif action == "review":
             room.dm.review(room.session, body.get("review_text", ""))
+        elif action == "note":
+            room.dm.note(room.session, body["journal_text"])
         new = room.session.events[before:]
         room._persist(new)
         return {"events": new, "snapshot": room.session.to_snapshot()}
@@ -220,9 +236,28 @@ def agent_view(sid: str, cid: str):
 def dm_prompt(sid: str):
     room = get_room(sid)
     with room.lock:
+        mem = room.dm.memory
+        brief_fn = getattr(mem, "player_brief", None)
+        if brief_fn:  # MemoryStore → 摘要视图（不漏 sqlite 句柄）
+            mem = {"brief": brief_fn()}
         return assemble_dm_prompt(room.bundle, room.session.events,
-                                  dm_memory=room.dm.memory,
+                                  dm_memory=mem,
                                   user_profile=room.dm.user_profile)
+
+
+@app.get("/games/{sid}/memory")
+def memory_view(sid: str, q: str = "", k: int = 5):
+    """DM 记忆库观察窗（jury 演示用）：brief + 可选检索。"""
+    room = get_room(sid)
+    store = room.dm.memory
+    if not hasattr(store, "player_brief"):
+        return {"memory": "dict-mode（测试模式），无 tideline 库"}
+    out = {"brief": getattr(store, "player_brief", lambda: None)()}
+    if q:
+        retriever = getattr(store, "retrieve", None)
+        if retriever:
+            out["retrieve"] = retriever(q, k=k)
+    return out
 
 
 @app.get("/healthz")
