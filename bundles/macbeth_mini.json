@@ -4,41 +4,102 @@
   "version": "0.1.0",
   "language": "zh",
   "characters": [
-    {"id": "macbeth", "name": "麦克白", "is_player": true,
-     "public_sheet": "考特爵士，战功赫赫，野心在袍子下面发烫",
-     "secret_sheet": "第一幕只知道预言；弑王之后，每一步都在往深渊走，直到森林移动的那天"},
-    {"id": "lady_m", "name": "麦克白夫人", "is_player": false,
-     "public_sheet": "麦克白之妻，比丈夫更硬的手",
-     "secret_sheet": "「 unsex me here」——她召来的狠，最后变成洗不掉的斑"},
-    {"id": "banquo", "name": "班柯", "is_player": false,
-     "public_sheet": "同行的将军，预言里他的子孙为王",
-     "secret_sheet": "他看得见朋友身上的变化，也看得见自己的结局"}
+    {
+      "id": "macbeth",
+      "name": "麦克白",
+      "is_player": true,
+      "public_sheet": "考特爵士，战功赫赫，野心在袍子下面发烫",
+      "secret_sheet": "第一幕只知道预言；弑王之后，每一步都在往深渊走，直到森林移动的那天"
+    },
+    {
+      "id": "lady_m",
+      "name": "麦克白夫人",
+      "is_player": false,
+      "public_sheet": "麦克白之妻，比丈夫更硬的手",
+      "secret_sheet": "「 unsex me here」——她召来的狠，最后变成洗不掉的斑"
+    },
+    {
+      "id": "banquo",
+      "name": "班柯",
+      "is_player": false,
+      "public_sheet": "同行的将军，预言里他的子孙为王",
+      "secret_sheet": "他看得见朋友身上的变化，也看得见自己的结局"
+    }
   ],
   "acts": [
-    {"act_id": "A1", "title": "荒野·预言", "world_info": "雷雨刚过的荒野，三个影子在等两个打完仗的人。",
-     "scenes": [
-       {"scene_id": "A1S1", "text": "女巫拦路：万福，未来的王。也万福，比王更久的父亲。",
-        "reveals": ["prophecy_given"]}
-     ]},
-    {"act_id": "A2", "title": "城堡·弑王", "world_info": "殷勤的东道主在自家城堡里招待了国王。",
-     "scenes": [
-       {"scene_id": "A2S1", "text": "幻觉的匕首指向邓肯的房门。",
-        "reveals": ["dagger_seen"]},
-       {"scene_id": "A2S2", "text": "国王死了。全城堡都在尖叫，只有一个人在洗手。",
-        "reveals": ["king_dead"]}
-     ]}
+    {
+      "act_id": "A1",
+      "title": "荒野·预言",
+      "world_info": "雷雨刚过的荒野，三个影子在等两个打完仗的人。",
+      "scenes": [
+        {
+          "scene_id": "A1S1",
+          "text": "女巫拦路：万福，未来的王。也万福，比王更久的父亲。",
+          "reveals": [
+            "prophecy_given"
+          ]
+        }
+      ],
+      "interlude": {
+        "text": "荒野的风声远了。邓肯的死讯还压在城堡的胸腔里，而女巫的预言，才刚刚开始发酵。",
+        "image_id": "img_act1_end"
+      }
+    },
+    {
+      "act_id": "A2",
+      "title": "城堡·弑王",
+      "world_info": "殷勤的东道主在自家城堡里招待了国王。",
+      "scenes": [
+        {
+          "scene_id": "A2S1",
+          "text": "幻觉的匕首指向邓肯的房门。",
+          "reveals": [
+            "dagger_seen"
+          ]
+        },
+        {
+          "scene_id": "A2S2",
+          "text": "国王死了。全城堡都在尖叫，只有一个人在洗手。",
+          "reveals": [
+            "king_dead"
+          ]
+        }
+      ]
+    }
   ],
   "props": [
-    {"id": "p_dagger", "name": "幻影匕首", "act_introduced": "A2", "cg_id": "cg_dagger"},
-    {"id": "p_crown", "name": "王冠", "act_introduced": "A2", "cg_id": "cg_crown"}
+    {
+      "id": "p_dagger",
+      "name": "幻影匕首",
+      "act_introduced": "A2",
+      "cg_id": "cg_dagger"
+    },
+    {
+      "id": "p_crown",
+      "name": "王冠",
+      "act_introduced": "A2",
+      "cg_id": "cg_crown"
+    }
   ],
   "cards": [
-    {"id": "tarot_tower", "name": "塔", "symbol": "高塔倾颓，冠冕坠落"}
+    {
+      "id": "tarot_tower",
+      "name": "塔",
+      "symbol": "高塔倾颓，冠冕坠落"
+    }
   ],
   "endgame": {
     "conditions": [
-      {"id": "end_fall", "description": "森林移动，预言合拢", "cg_id": "cg_birnam"},
-      {"id": "end_rise", "description": "子孙为王（班柯线）", "cg_id": "cg_lineage"}
+      {
+        "id": "end_fall",
+        "description": "森林移动，预言合拢",
+        "cg_id": "cg_birnam"
+      },
+      {
+        "id": "end_rise",
+        "description": "子孙为王（班柯线）",
+        "cg_id": "cg_lineage"
+      }
     ],
     "review_prompt": "DM：从预言到森林，哪一步是可以回头的？"
   }

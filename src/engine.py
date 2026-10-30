@@ -140,7 +140,7 @@ class Session:
                       act_id=d["act_id"], scene_id=d["scene_id"],
                       channel="main", text=d["description"])
 
-    def line(self, cid, text, channel="main"):
+    def line(self, cid, text, channel="main", pose=None):
         # 死者不以角色身份进推进通道：main 拒绝（观演者与 DM/复盘的交流
         # 走 DM 主框或 channel，不占剧情推进位）
         if (cid in self._s()["character_states"]
@@ -151,6 +151,8 @@ class Session:
         t = "player_line" if self.bundle.chars[cid].get("is_player") else "agent_line"
         kw = dict(type=t, character_id=cid, act_id=self._s()["act_id"],
                   text=text, channel=channel)
+        if pose is not None:  # 动作标注：生成管线异步差分立绘的记账位
+            kw["pose"] = pose
         if self._s()["scene_id"] is not None:  # 幕已开未进场景=诚实省略，同 DM._stage
             kw["scene_id"] = self._s()["scene_id"]
         self.emit(**kw)

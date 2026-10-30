@@ -36,6 +36,7 @@
           "act_id": {"type": "string"},
           "title": {"type": "string"},
           "world_info": {"type": "string", "description": "本幕世界信息"},
+          "interlude": {"type": "object", "description": "本幕收尾过场材料。剧本态：咖啡哥写进 bundle；事件态：act_end 回显，前端取料演出（静态卡/动画/生成视频归前端）。引擎只透传不演出。可选，旧 bundle 省略照常", "properties": {"text": {"type": "string", "description": "过场文案"}, "image_id": {"type": "string", "description": "过场配图 id，指向 bundle.assets"}}},
           "scenes": {
             "type": "array",
             "items": {

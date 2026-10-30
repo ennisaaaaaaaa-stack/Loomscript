@@ -222,16 +222,30 @@ class DM:
         acts = [a["act_id"] for a in self.bundle.data["acts"]]
         i = acts.index(session._s()["act_id"])
         nxt = acts[i + 1] if i + 1 < len(acts) else None
+        # 过场材料回显：bundle 里写了就随 act_end 一起下发，前端取料演出
+        def _interlude(act_id):
+            for a in self.bundle.data["acts"]:
+                if a["act_id"] == act_id:
+                    return a.get("interlude")
+            return None
         if nxt:
             title = self.bundle.act(nxt)["title"]
-            session.emit(type="act_end", act_id=acts[i])
+            inter = _interlude(acts[i])
+            kw = dict(type="act_end", act_id=acts[i])
+            if inter:
+                kw["interlude"] = inter
+            session.emit(**kw)
             session.emit(type="act_begin", act_id=nxt)
             session.emit(type="agent_line", character_id=DM_ID, channel="main",
                          text=f"—— 第{len(acts[:i+1])+1}幕 · {title} ——",
                          act_id=nxt)
             self._archive(session, act_ended=acts[i])
         else:
-            session.emit(type="act_end", act_id=acts[i])
+            inter = _interlude(acts[i])
+            kw = dict(type="act_end", act_id=acts[i])
+            if inter:
+                kw["interlude"] = inter
+            session.emit(**kw)
             session.emit(type="game_end", review_text=None)
             self._archive(session, act_ended=acts[i], final=True)
 

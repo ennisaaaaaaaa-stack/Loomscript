@@ -174,7 +174,7 @@ def say(sid: str, body: dict):
     with room.lock:
         try:
             before = len(room.session.events)
-            room.session.line(cid, text, channel=channel)
+            room.session.line(cid, text, channel=channel, pose=body.get("pose"))
             new = room.session.events[before:]
         except ContractError as e:
             raise HTTPException(400, str(e))
