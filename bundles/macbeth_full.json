@@ -6125,5 +6125,189 @@
       "note": "投放规则V3: cue dispatch 须引擎选轮+送达回执, bundle 只携带静态包, 装配按当前幕切片"
     }
   },
-  "clues": []
-}\n
+  "clues": [
+    {
+      "clue_id": "CL01",
+      "title": "王命的封蜡",
+      "text": "封赏由王命授予，送达时点晚于女巫第一次称呼考特。纸上不写未来的王位。",
+      "visible_at": "A1",
+      "must_ready_by": "final",
+      "act_scoped": false,
+      "payload": {
+        "payload_type": "物件线索",
+        "redline": "可以证实称号的来路与时点；不可据此断言女巫能决定未来。",
+        "visibility": [
+          "macbeth",
+          "banquo",
+          "ross"
+        ],
+        "release_event": "a1_cawdor",
+        "source_note": "封赏口信原著有据；纸面蜡封为改编"
+      }
+    },
+    {
+      "clue_id": "CL02",
+      "title": "继承人的座位",
+      "text": "册立之后，马尔康的位置被安排在国王身旁；同袍的功勋与王位继承并不是一回事。",
+      "visible_at": "A1",
+      "must_ready_by": "final",
+      "act_scoped": false,
+      "payload": {
+        "payload_type": "环境线索",
+        "redline": "只能指向公开的继承秩序；不可暴露夫妻密谋。",
+        "visibility": [
+          "macbeth",
+          "banquo",
+          "macduff",
+          "malcolm",
+          "ross"
+        ],
+        "release_event": "a1_heir",
+        "source_note": "立储原著有据；座位呈现为导演改编"
+      }
+    },
+    {
+      "clue_id": "CL03",
+      "title": "被带回又放回的匕首",
+      "text": "案发后在寝室附近取得的匕首上可见暗红污迹。谁曾经移动它，需要证词解释。",
+      "visible_at": "A2",
+      "must_ready_by": "final",
+      "act_scoped": false,
+      "payload": {
+        "payload_type": "物件线索",
+        "redline": "不可写现代指纹或DNA结论；不自动证明麦克白或夫人是凶手。",
+        "visibility": [
+          "macduff",
+          "banquo"
+        ],
+        "release_event": "a2_clues",
+        "source_note": "匕首与栽赃守卫有据；搜证公开方式为改编"
+      }
+    },
+    {
+      "clue_id": "CL04",
+      "title": "敲门前的动静",
+      "text": "门房回忆自己接连听见敲门。有人声称此前听到脚步，但夜色中没有认出面孔。",
+      "visible_at": "A2",
+      "must_ready_by": "final",
+      "act_scoped": false,
+      "payload": {
+        "payload_type": "gossip",
+        "redline": "标为回忆与流言；不能精确补写原作未给的分钟数或目击身份。",
+        "visibility": [
+          "macduff",
+          "banquo"
+        ],
+        "release_event": "a2_clues",
+        "source_note": "敲门原著有据；二级转述卡为改编"
+      }
+    },
+    {
+      "clue_id": "CL05",
+      "title": "夜路上的熄火处",
+      "text": "路边留下一截熄灭的火把与杂乱足迹，至少有离开道路的步痕。它表明这里发生过冲突，不给出逃离者姓名。",
+      "visible_at": "A3",
+      "must_ready_by": "final",
+      "act_scoped": false,
+      "payload": {
+        "payload_type": "环境线索",
+        "redline": "玩家若未获刺客报告，不可自动知弗里恩斯逃脱；不能把血迹变成全知说明。",
+        "visibility": [
+          "macbeth"
+        ],
+        "release_event": "a3_report",
+        "source_note": "火把熄灭有据；足迹为改编"
+      }
+    },
+    {
+      "clue_id": "CL06",
+      "title": "宴会的空席",
+      "text": "几位宾客确认：王指向的座位在他们眼中空着。有人只记下他的退步，没有记下他口中的名字。",
+      "visible_at": "A3",
+      "must_ready_by": "final",
+      "act_scoped": false,
+      "payload": {
+        "payload_type": "环境线索",
+        "redline": "仅确认共同目击；不可给公共角色展示鬼魂图或确认鬼魂客观存在。",
+        "visibility": [
+          "lady_macbeth",
+          "ross"
+        ],
+        "release_event": "a3_banquet",
+        "source_note": "宴会原著有据；匿名证言为改编"
+      }
+    },
+    {
+      "clue_id": "CL07",
+      "title": "预言原句的缺口",
+      "text": "三条话语被分开记录：小心麦克德夫；妇人所生者；森林移动。文本没有写下你自行理解的“绝对安全”。",
+      "visible_at": "A4",
+      "must_ready_by": "final",
+      "act_scoped": false,
+      "payload": {
+        "payload_type": "传说",
+        "redline": "仅麦克白与女巫可读；不解释剖腹或树枝，直到A5相应事件。",
+        "visibility": [
+          "macbeth"
+        ],
+        "release_event": "a4_oracle",
+        "source_note": "预言有据；手记为改编"
+      }
+    },
+    {
+      "clue_id": "CL08",
+      "title": "费辅的断门闩",
+      "text": "带回来的门闩裂片并不能重现屋内最后几秒，但确认伤害已经越过战场，进入家宅。",
+      "visible_at": "A4",
+      "must_ready_by": "final",
+      "act_scoped": false,
+      "payload": {
+        "payload_type": "物件线索",
+        "redline": "噩耗确认前隐藏；不展示儿童伤害细节，不伪造家人遗言。",
+        "visibility": [
+          "macduff",
+          "malcolm",
+          "ross"
+        ],
+        "release_event": "a4_news",
+        "source_note": "袭击有据；门闩与证物转交为改编"
+      }
+    },
+    {
+      "clue_id": "CL09",
+      "title": "侍女的有限记录",
+      "text": "侍女只愿确认看见反复擦手与听见断续言语，拒绝把未完整听到的句子补成供认。",
+      "visible_at": "A5",
+      "must_ready_by": "final",
+      "act_scoped": false,
+      "payload": {
+        "payload_type": "gossip",
+        "redline": "梦游是观察，罪责是解释；不能据此补齐所有暗杀细节。",
+        "visibility": [
+          "macbeth"
+        ],
+        "release_event": "a5_queen_news",
+        "source_note": "梦游有据；公开记录与转述为改编"
+      }
+    },
+    {
+      "clue_id": "CL10",
+      "title": "带着步痕的枝叶",
+      "text": "枝条底端有新折口，叶面潮湿；枝条被放下后，后面露出士兵的脚步与队列。",
+      "visible_at": "A5",
+      "must_ready_by": "final",
+      "act_scoped": false,
+      "payload": {
+        "payload_type": "物件线索",
+        "redline": "展示之后才能解释森林移动；不画树木长腿或自行行走。",
+        "visibility": [
+          "malcolm",
+          "macduff",
+          "ross"
+        ],
+        "release_event": "a5_branches",
+        "source_note": "枝条伪装有据"
+      }
+    }
+  ]
+}
