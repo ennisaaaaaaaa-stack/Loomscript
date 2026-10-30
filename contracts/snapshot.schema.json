@@ -18,6 +18,7 @@
         "required": ["on_stage"],
         "properties": {
           "on_stage": {"type": "boolean"},
+          "alive": {"type": "boolean", "default": true, "description": "生死状态位。死亡场景触发 death 事件后翻为 false；此后该角色不能再以角色身份进 main 推进，DM 层转观演视角"},
           "lines_spoken": {"type": "integer", "minimum": 0},
           "knowledge_unlocked": {
             "type": "array",

@@ -21,7 +21,8 @@ Mapping decisions (documented inline):
 import json, pathlib, sys
 
 SRC = pathlib.Path("/home/ubuntu/loomscript_materials/LoomScript_咖啡交付包(1)/LoomScript_咖啡哥交付包/sample")
-OUT = pathlib.Path("/home/ubuntu/loomscript/bundles/macbeth_full.json")
+# 输出随脚本所在仓库走（脚本相对），不再写死绝对路径——worktree 里重跑不得污染主仓
+OUT = pathlib.Path(__file__).resolve().parent.parent / "bundles" / "macbeth_full.json"
 
 A1 = {r["角色id"]: r for r in (json.load(open(SRC / "A1_roles" / f"{fid}.json")) for fid in
         ["macbeth","lady_macbeth","banquo","macduff","malcolm","ross","duncan","fleance","witch_1","witch_2","witch_3"])}
@@ -136,15 +137,49 @@ for act in WORLD["acts"]:
 for c in CLUES:
     assets.append({"id": f"ICON_{c['id']}", "kind": "prop_icon", "uri": f"assets/icons/{c['id']}.png", "status": "pending"})
 
+# ---- deaths (canon-locked, data-driven; wt/death) ----
+# 依据（素材包，只读）：
+#   1. A3_world.json canon_locked[1]: "班柯于A3遇害，弗里恩斯逃走"
+#   2. A3_world.json acts[A3].eventsequence: [a3_coronation, a3_ambush, a3_report,
+#      a3_banquet, a3_close] —— a3_ambush(父子遇袭)为第2事件，对应本幕第2场景 A3S2
+#      (BG refs BG02/BG05/BG11: 宫廷加冕/夜路伏杀/宴厅)
+#   3. location_matrix.json A3.banquo: "福累斯夜路→死亡"; A4/A5.banquo: "死亡"
+# 素材无专门 deaths 字段，故在此显式声明（触发时点=进入 A3S2，确定性、可重放）。
+deaths = [
+    {
+        "id": "death_banquo_a3",
+        "character_id": "banquo",
+        "act_id": "A3",
+        "scene_id": "A3S2",
+        "description": "夜路遇袭：班柯倒在福累斯城外的路上，弗里恩斯趁乱逃走。空席从此有了名字。",
+        "observer_brief": "你是班柯——此刻起你以魂魄之眼看戏：见证宴席上的空位如何撬动王座，"
+                          "只观察，不再行动；台上人看不见你，你看得见他们。",
+    },
+]
+# 声明与素材 canon 对照：canon_locked 明言班柯于A3遇害才允许生成（防素材改版后静默漂移）
+DEATH_EVIDENCE = "班柯于A3遇害"
+canon_blob = json.dumps(WORLD.get("canon_locked", []), ensure_ascii=False)
+assert DEATH_EVIDENCE in canon_blob, "canon_locked 不再含『班柯于A3遇害』——deaths 声明需人工复核"
+
+# deaths 挂进对应场景（进入场景即触发；acts 已在上面建好，此处回填）
+DEATH_BY_SCENE = {}
+for d in deaths:
+    DEATH_BY_SCENE.setdefault(d["scene_id"], []).append(d["id"])
+for act in acts:
+    for sc in act["scenes"]:
+        if sc["scene_id"] in DEATH_BY_SCENE:
+            sc["deaths"] = DEATH_BY_SCENE[sc["scene_id"]]
+
 bundle = {
     "id": "macbeth_full_v1",
     "title": "麦克白 · 全五幕",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "language": "zh",
     "source_pack": "LoomScript_咖啡交付包(1) content_revision=" + str(WORLD.get("content_revision", "?")),
     "adaptation_note": WORLD.get("adaptation_note", ""),
     "characters": characters,
     "acts": acts,
+    "deaths": deaths,
     "props": props,
     "cards": cards,
     "endgame": endgame,
@@ -154,7 +189,8 @@ bundle = {
 OUT.write_text(json.dumps(bundle, ensure_ascii=False, indent=2), encoding="utf-8")
 print(f"bundle written: {OUT} ({OUT.stat().st_size} bytes)")
 print(f"characters={len(characters)} acts={len(acts)} scenes={sum(len(a['scenes']) for a in acts)} "
-      f"props={len(props)} cards={len(cards)} endings={len(endgame['endings'])} assets={len(assets)}")
+      f"props={len(props)} cards={len(cards)} endings={len(endgame['endings'])} assets={len(assets)} "
+      f"deaths={len(deaths)}")
 
 # self-check: id uniqueness
 ids = [c['id'] for c in characters] + [s['scene_id'] for a in acts for s in a['scenes']]
