@@ -2,7 +2,7 @@
 只认 contracts/ 三件套，不 import 任何前端。事件溯源：状态=事件流的纯函数。
 降级档（pianist/堂屋/半人工）只是 snapshot 里一个字段——同一接口进。
 """
-import json, time, uuid, pathlib
+import json, os, time, uuid, pathlib
 from datetime import datetime, timezone
 from jsonschema import Draft202012Validator
 
@@ -249,6 +249,8 @@ class AgentPort:
         self.tier = tier
 
     def respond(self, session, cid):
+        """子类可覆盖。pianist 档扩展了 (material, message) 关键字——
+        DM.speak 用 try/except TypeError 探测，旧签名 port 不受影响。"""
         raise NotImplementedError
 
 
@@ -274,19 +276,32 @@ class PianistPort(AgentPort):
         super().__init__(tier="pianist")
         self.endpoint = endpoint  # None = 未接线，respond 时明确报错
 
-    def respond(self, session, cid):
-        if not self.endpoint:
-            raise ContractError("pianist 未接线：endpoint 未配置（联调窗定）")
+    def respond(self, session, cid, material=None, message=None):
+        """统一异常边界（终审 P0-02）：URL 构造/连接/超时/HTTP/JSON/合同形状
+        全收敛成降级串，不 raise——五态+timeout 每态都不炸调用方。
+        空配置（态3）也走可读降级：demo 现场部署错误只该降演出不该炸。
+        """
         import json as _json, urllib.request as _u
         payload = _json.dumps({"snapshot": session.to_snapshot(),
                                "agent_view": session.agent_view(cid),
                                "cue": {"act": session._s()["act_id"],
-                                       "scene": session._s()["scene_id"]}}).encode()
-        req = _u.Request(self.endpoint, data=payload,
-                         headers={"Content-Type": "application/json"})
-        with _u.urlopen(req, timeout=30) as resp:
-            data = _json.load(resp)
-        if not data.get("line"):  # 服务报错（预算闸/无key/异常）时给可读降级，不炸引擎
-            detail = data.get("detail") or data.get("error") or "no line"
+                                       "scene": session._s()["scene_id"]},
+                               "kind": "dm" if cid == "dm" else "character",
+                               "material": material or {},
+                               "message": message}).encode()
+        timeout = float(os.environ.get("PIANIST_PORT_TIMEOUT", "8"))
+        try:
+            if not self.endpoint:  # 空配置也走可读降级（终审 P0-02 态3）
+                return "……（pianist 档：服务报错降级 | endpoint 未配置）"
+            req = _u.Request(self.endpoint, data=payload,
+                             headers={"Content-Type": "application/json"})
+            with _u.urlopen(req, timeout=timeout) as resp:
+                data = _json.load(resp)
+        except Exception as e:  # 连接拒绝/超时/HTTP 500/HTML/畸形 URL——全降级
+            return f"……（pianist 档：服务报错降级 | {type(e).__name__}: {e}）"
+        if not isinstance(data, dict) or not data.get("line"):
+            # 服务报错（预算闸/无key/异常）时给可读降级，不炸引擎
+            detail = (data.get("detail") or data.get("error") or "no line") \
+                if isinstance(data, dict) else "non-object body"
             return f"……（pianist 档：服务报错降级 | {detail}）"
         return data["line"]

@@ -301,8 +301,34 @@ class DM:
         return entry
 
     # -- DM 台词（演出层：走 port，可降级） -----------------------------------
-    def speak(self, session: Session):
-        line = self.port.respond(session, DM_ID)
+    def speak(self, session: Session, message=None):
+        """自由交流 DM 接话（终审 P0-01：唯一全链路触发点在 server /say）。
+
+        pianist 档：富路径——kind=dm + assemble_dm_prompt 全知材料（P1-01），
+        port 异常已收敛成降级串（P0-02），这里再落一层预生成兜底。
+        其余档位：薄路径，respond(session, cid) 原样。
+        """
+        material = None
+        try:
+            from dm import digest_private_channels  # 同模块自引用，防循环
+            mem = self.memory
+            brief_fn = getattr(mem, "player_brief", None)
+            if brief_fn:
+                mem = {"brief": brief_fn()}
+            material = assemble_dm_prompt(
+                self.bundle, session.events, dm_memory=mem,
+                user_profile=self.user_profile,
+                private_digest=digest_private_channels(session.events))
+        except Exception:
+            material = None  # 材料装配失败 → 薄路径，别炸接话
+        if material is not None:
+            try:
+                line = self.port.respond(session, DM_ID,
+                                         material=material, message=message)
+            except TypeError:  # 旧签名 port（semi_manual 等）→ 薄路径
+                line = self.port.respond(session, DM_ID)
+        else:
+            line = self.port.respond(session, DM_ID)
         # L3 兜底：半人工档空表 / pianist 档服务报错（预算闸、无key、异常）
         # 两条降级串都触发预生成兜底台词——降级链闭环，demo 不死只是降演出
         if line.startswith(("……（半人工档：无预排练台词）",

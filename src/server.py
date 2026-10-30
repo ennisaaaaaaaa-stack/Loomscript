@@ -182,6 +182,12 @@ def stream(sid: str, after: int = -1):
 
 @app.post("/games/{sid}/say")
 def say(sid: str, body: dict):
+    """玩家发言落账（终审 P0-01：DM 接话的全链路触发点）。
+
+    玩家 main 频道发言 → DM 自动接一句（走 port，pianist 档真调 /agent，
+    异常在 port 内已收敛成降级串）。pianist HTTP 有延迟，放锁外跑，
+    落账前重取事件流增量。dm=False 关掉（测试/静默档）。
+    """
     room = get_room(sid)
     cid = body.get("character_id")
     text = body.get("text", "")
@@ -194,7 +200,24 @@ def say(sid: str, body: dict):
         except ContractError as e:
             raise HTTPException(400, str(e))
         room._persist(new)
-        return {"events": new, "snapshot": room.session.to_snapshot()}
+    # DM 接话：默认开（demo 卖点）；channel=dm 或显式 dm_reply=False 时不接
+    dm_reply = body.get("dm_reply",
+                        True if (room.port_kind == "pianist"
+                                 and channel == "main") else False)
+    if dm_reply and channel == "main":
+        try:
+            line = room.dm.speak(room.session, message=f"{cid}: {text}")
+        except Exception as e:  # 接话失败不炸 say——玩家发言已落账
+            line = None
+        if line:
+            with room.lock:
+                b2 = len(room.session.events)
+                room.session.emit(type="agent_line", character_id="dm",
+                                  channel="main", text=line,
+                                  **room.dm._stage(room.session))
+                new = new + room.session.events[b2:]
+                room._persist(room.session.events[b2:])
+    return {"events": new, "snapshot": room.session.to_snapshot()}
 
 
 @app.post("/games/{sid}/scene")

@@ -40,7 +40,36 @@ LLM_API_KEY = os.environ.get("PIANIST_LLM_API_KEY", "")
 LLM_MODEL = os.environ.get("PIANIST_LLM_MODEL", "glm-5.2")
 LLM_TIMEOUT = float(os.environ.get("PIANIST_LLM_TIMEOUT", "45"))
 
-_ledger_lock = threading.Lock()
+_ledger_lock = threading.RLock()  # RLock：占位闸内嵌调 ledger()，可重入不自杀
+_budget_state = {"date": None, "count": 0}  # 锁内热账：跨请求原子占位（终审 P1-02）
+
+
+def _try_reserve_budget(kind: str) -> bool:
+    """锁内原子「检查+占位」（终审 P1-02）：预算内先记账再放行，超了落
+    budget_exhausted 账拒进。计数仍以盘上 ledger 为准（重启不洗预算），
+    热账只是同进程内的并发闸——首调时从盘重放预热。"""
+    with _ledger_lock:
+        today = _now()[:10]
+        if _budget_state["date"] != today:
+            _budget_state.update(date=today, count=calls_today())
+        if _budget_state["count"] >= DAILY_CALLS:
+            # 拒进账行用 llm_reject 类型：不计入 calls_today——
+            # 预算耗尽后的重试不该继续抬高计数（否则闸越拒越紧）
+            ledger({"type": "llm_reject", "kind": kind,
+                    "status": "budget_exhausted"})
+            return False
+        # 占位账先落：后面的 llm_call 账只更新状态，不重复计数
+        _budget_state["count"] += 1
+        ledger({"type": "llm_call", "kind": kind, "ok": None,
+                "status": "reserved"})
+        return True
+
+
+def _settle_budget(kind: str, ok: bool, status: str, **extra):
+    """占位 → 终态：reserved 之后的那笔终态账改用 settle 类型，
+    calls_today 只数 llm_call（含 reserved 占位），不重复计数。"""
+    ledger({"type": "llm_settle", "kind": kind, "ok": ok,
+            "status": status, **extra})
 
 app = FastAPI(title="Loomscript pianist runtime")
 app.add_middleware(CORSMiddleware, allow_origins=["*"],
@@ -146,12 +175,11 @@ def agent(body: AgentRequest):
     raw = body.model_dump()
     kind = raw.get("kind") or "character"
 
-    # 预算闸在调用前（conductor：当日 draws 满 → 当天硬停，不商量）
-    if calls_today() >= DAILY_CALLS:
-        ledger({"type": "llm_call", "kind": kind, "ok": False,
-                "status": "budget_exhausted"})
+    # 预算闸在调用前（conductor：当日 draws 满 → 当天硬停，不商量）。
+    # 终审 P1-02：检查+占位收进同一把锁，并发不再穿透。
+    if not _try_reserve_budget(kind):
         return {"ok": False, "error": "budget_exhausted",
-                "detail": f"今日 {calls_today()}/{DAILY_CALLS} 次已用完（PIANIST_DAILY_CALLS）"}
+                "detail": f"今日 {_budget_state['count']}/{DAILY_CALLS} 次已用完（PIANIST_DAILY_CALLS）"}
 
     t0 = time.time()
     try:
@@ -165,20 +193,21 @@ def agent(body: AgentRequest):
             ok, status = True, "stub"
         else:
             if not (LLM_BASE_URL and LLM_API_KEY):
+                _settle_budget(kind, False, "no_llm_config")
                 return {"ok": False, "error": "no_llm_config",
                         "detail": "PIANIST_LLM_BASE_URL / PIANIST_LLM_API_KEY 未配置"
                                   "（或设 PIANIST_STUB=1 走确定性档）"}
             system, user = build_messages(raw)
             line = llm_chat(system, user)
             ok, status = True, "llm"
-        ledger({"type": "llm_call", "kind": kind, "ok": ok,
-                "status": status, "latency_ms": int((time.time() - t0) * 1000)})
+        _settle_budget(kind, ok, status,
+                       latency_ms=int((time.time() - t0) * 1000))
         return {"ok": True, "line": line}
     except Exception as e:  # 尾巴截取：验尸材料随账落盘
         tail = f"{type(e).__name__}: {e}"[:200]
-        ledger({"type": "llm_call", "kind": kind, "ok": False,
-                "status": "error", "latency_ms": int((time.time() - t0) * 1000),
-                "error_tail": tail})
+        _settle_budget(kind, False, "error",
+                       latency_ms=int((time.time() - t0) * 1000),
+                       error_tail=tail)
         return {"ok": False, "error": "llm_failed", "detail": tail}
 
 
