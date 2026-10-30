@@ -201,6 +201,26 @@
     }
    }
   },
+    "clues": {
+   "type": "array",
+   "description": "Loomscript clue master table (7.4). visible_at = earliest act where the clue may fire; must_ready_by = deadline (act id or final); past the deadline the engine degrades or drops. These two fields are what the engine checks before releasing a DM proposal.",
+   "items": {
+    "type": "object",
+    "required": ["clue_id", "title", "text", "visible_at"],
+    "properties": {
+     "clue_id": {"type": "string"},
+     "title": {"type": "string"},
+     "text": {"type": "string"},
+     "visible_at": {"type": "string"},
+     "must_ready_by": {"type": "string"},
+     "act_scoped": {"type": "boolean"},
+     "payload": {
+      "type": "object",
+      "description": "default clue_found event payload used when the engine releases the proposal"
+     }
+    }
+   }
+  },
   "endgame": {
       "type": "object",
       "required": ["conditions", "review_prompt"],
