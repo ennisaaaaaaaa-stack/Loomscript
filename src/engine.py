@@ -179,6 +179,12 @@ class Session:
 
     # ---- 防剧透：agent 视野 = 到当前幕为止 + 已揭示 ----------------------
     def agent_view(self, cid):
+        if cid == "dm":
+            # DM 全知视角：不走角色切片（防剧透线不适用于主持人）
+            return {"dm": True,
+                    "act_id": self._s()["act_id"],
+                    "scene_id": self._s()["scene_id"],
+                    "note": "DM 全知：完整世界信息在 dm_prompt 端点"}
         c = self.bundle.chars[cid]
         acts = self.bundle.data["acts"]
         i = [a["act_id"] for a in acts].index(self._s()["act_id"])

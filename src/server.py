@@ -16,6 +16,7 @@ demo 现场断电不丢对局——对拍与快照的地基。
 """
 import argparse
 import json
+import os
 import pathlib
 import sys
 import threading
@@ -28,7 +29,8 @@ from fastapi.responses import StreamingResponse
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
-from engine import Bundle, Session, SemiManualPort, ContractError  # noqa: E402
+from engine import (Bundle, Session, SemiManualPort, PianistPort,  # noqa: E402
+                    AgentPort, ContractError)
 from dm import (DM, assemble_character_prompt, assemble_dm_prompt, DM_ID,  # noqa: E402
                 channel_history, digest_private_channels)
 from memory import MemoryStore  # noqa: E402
@@ -46,16 +48,29 @@ GAMES = {}  # session_id -> GameRoom
 BUNDLE_CACHE = {}
 
 
+def make_port(port_kind: str):
+    """按档位造 DM 的嘴。pianist 档 → PianistPort(endpoint=PIANIST_AGENT_URL)；
+    其余 → SemiManualPort（预排练表在 bundle 加载时注入，当前为空表）。"""
+    if port_kind == "pianist":
+        url = os.environ.get("PIANIST_AGENT_URL",
+                             "http://127.0.0.1:8741/agent")
+        return PianistPort(endpoint=url)
+    return SemiManualPort({})
+
+
 class GameRoom:
     """一局在内存里的家：Session + DM + 事件持久化 + 锁。"""
 
     def __init__(self, bundle: Bundle, tier: str, port_kind: str,
                  memory_store: MemoryStore | None = None,
+                 dm_port: AgentPort | None = None,
                  distill_llm=None):
         self.bundle = bundle
         self.session = Session(bundle, tier=tier)
         self.store = memory_store  # None=测试态（dm.memory 保持 dict）
-        self.dm = DM(bundle, SemiManualPort({}),
+        if dm_port is None:
+            dm_port = make_port(port_kind)
+        self.dm = DM(bundle, dm_port,
                      dm_memory=memory_store or {},
                      user_profile=(memory_store.player_brief()
                                    if memory_store else {}),

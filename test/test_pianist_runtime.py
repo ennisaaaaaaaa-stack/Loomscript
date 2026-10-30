@@ -261,6 +261,13 @@ def t_c2():
     sid = r["session_id"]
     room = get_room(sid)
     assert room.port_kind == "pianist", room.port_kind
+    # DM 的嘴真的换成了 PianistPort（本轮补的最后半步）
+    from engine import PianistPort as PP
+    assert isinstance(room.dm.port, PP), type(room.dm.port).__name__
+    assert room.dm.port.endpoint.endswith("/agent"), room.dm.port.endpoint
+    # DM.speak 全链路：走 PianistPort 打真服务，台词回落兜底
+    line = room.dm.speak(room.session)
+    assert line and isinstance(line, str), line
 check("C2-server-port-kind", t_c2)
 
 print()
