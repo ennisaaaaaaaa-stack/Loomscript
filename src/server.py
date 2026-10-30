@@ -32,6 +32,7 @@ from engine import Bundle, Session, SemiManualPort, ContractError  # noqa: E402
 from dm import (DM, assemble_character_prompt, assemble_dm_prompt, DM_ID,  # noqa: E402
                 channel_history, digest_private_channels)
 from memory import MemoryStore  # noqa: E402
+from play_blocks import propose_clue as pb_propose_clue, sweep_deadline  # noqa: E402
 
 BUNDLES_DIR = ROOT / "bundles"
 SESSIONS_DIR = ROOT / "sessions"
@@ -194,7 +195,7 @@ def enter_scene(sid: str, body: dict):
 
 
 DM_ACTIONS = ("opening", "propose_play", "deal_cards", "advance_act",
-              "review", "note")
+              "review", "note", "propose_clue")
 
 
 @app.post("/games/{sid}/dm")
@@ -213,10 +214,17 @@ def dm_action(sid: str, body: dict):
             room.dm.deal_cards(room.session, body["character_id"])
         elif action == "advance_act":
             room.dm.advance_act(room.session)
+            sweep_deadline(room.session)  # 死线扫描：逾期线索归档（降级的一部分）
         elif action == "review":
             room.dm.review(room.session, body.get("review_text", ""))
         elif action == "note":
             room.dm.note(room.session, body["journal_text"])
+        elif action == "propose_clue":
+            try:
+                pb_propose_clue(room.session, body["clue_id"],
+                                jitter_text=body.get("jitter_text"))
+            except ContractError as e:
+                raise HTTPException(400, str(e))
         new = room.session.events[before:]
         room._persist(new)
         return {"events": new, "snapshot": room.session.to_snapshot()}
