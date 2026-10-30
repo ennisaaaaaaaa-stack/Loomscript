@@ -303,8 +303,11 @@ class DM:
     # -- DM 台词（演出层：走 port，可降级） -----------------------------------
     def speak(self, session: Session):
         line = self.port.respond(session, DM_ID)
-        if line.startswith("……（半人工档：无预排练台词）"):
-            line = self._pg("fallback") or line  # L3：预生成兜底台词优先
+        # L3 兜底：半人工档空表 / pianist 档服务报错（预算闸、无key、异常）
+        # 两条降级串都触发预生成兜底台词——降级链闭环，demo 不死只是降演出
+        if line.startswith(("……（半人工档：无预排练台词）",
+                            "……（pianist 档：服务报错降级")):
+            line = self._pg("fallback") or line  # 预生成兜底台词优先
         return line
 
     # -- 复盘引导（game_end 后的 review 事件；自由交流归 DM） ------------------
