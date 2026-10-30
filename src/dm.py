@@ -44,6 +44,12 @@ def assemble_character_prompt(bundle, act_id, character_id, events, channel_hist
         "current_scene": None,  # 由调用方按 events 推出后填
         "your_channel_history": channel_history.get(f"dm:{character_id}", []),
         "knowledge_unlocked": [],  # 由 events 结算
+        # 逐轮演员包：只给当前幕的（数据结构级防剧透——未来幕的桶物理不进材料，
+        # 与 secret_sheet 切片同一思路）。逐轮选 cue/送达回执是运行时行为（投放规则V3），
+        # 装配侧先把当前幕该角色的全部 cue 备好，引擎选轮后自然取用。
+        "actor_turns": {"act_id": act_id,
+                        "cues": bundle.data.get("actor_turns", {})
+                                   .get(act_id, {}).get(character_id, [])},
         "law": "你不能知道还没演到的真相。材料里没有的就是你不知道的。",
     }
 

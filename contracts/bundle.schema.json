@@ -110,7 +110,98 @@
         }
       }
     },
-    "endgame": {
+    "actor_turns": {
+   "type": "object",
+   "description": "逐轮演员包按幕分桶：{act_id: {role_id: [cue,...]}}，外加 _meta 审计项（cue 总数/来源，不参与装配）。cue 天然归属剧情事件（event 前缀即幕号），DM 装配按当前幕切片——未来幕的包物理不进角色材料（数据结构级防剧透，同 secret_sheet 切片思路）。cue 的逐轮派发（选轮+送达回执）是运行时行为，bundle 只携带静态包",
+   "patternProperties": {
+    "^_meta$": {
+     "type": "object",
+     "description": "审计元数据（cue_count/source），装配侧不读"
+    },
+    "^(?!_meta$).+$": {
+     "type": "object",
+     "description": "一个幕的桶：{role_id: [cue,...]}",
+     "additionalProperties": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+       "type": "object",
+       "required": [
+        "cue_id",
+        "event",
+        "tick",
+        "pack"
+       ],
+       "properties": {
+        "cue_id": {
+         "type": "string",
+         "description": "cue 标识，如 U004 / CUE_WH01"
+        },
+        "event": {
+         "type": "string",
+         "description": "剧情事件 id，如 a1_prophecy（前缀=幕号）"
+        },
+        "tick": {
+         "type": "integer",
+         "description": "事件内派发顺序（素材内部 tick，仅排序用）"
+        },
+        "status": {
+         "type": "string",
+         "description": "演员状态，如 active"
+        },
+        "recipient_role_id": {
+         "type": [
+          "string",
+          "null"
+         ],
+         "description": "私下表达的对象；null=公开台词"
+        },
+        "requires_fact_ids": {
+         "type": "array",
+         "items": {
+          "type": "string"
+         },
+         "description": "该 cue 派发前必须已送达的事实 id（投放规则V3）"
+        },
+        "pack": {
+         "type": "object",
+         "required": [
+          "self_profile",
+          "confirmed_knowledge",
+          "own_lines",
+          "current_goal",
+          "visible_clues",
+          "visible_prop_pages"
+         ],
+         "description": "演员包本体（内容层，内部中文 key 原样保留）：self_profile=角色卡（公开面/秘密面/驱动/底线/行为边界/语气指纹）、confirmed_knowledge=已送达回执事实、own_lines=本轮获准台词、current_goal=本轮目标、visible_clues/visible_prop_pages=可见线索与道具页",
+         "properties": {
+          "self_profile": {
+           "type": "object"
+          },
+          "confirmed_knowledge": {
+           "type": "array"
+          },
+          "own_lines": {
+           "type": "array"
+          },
+          "current_goal": {
+           "type": "string"
+          },
+          "visible_clues": {
+           "type": "array"
+          },
+          "visible_prop_pages": {
+           "type": "array"
+          }
+         }
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "endgame": {
       "type": "object",
       "required": ["conditions", "review_prompt"],
       "properties": {
