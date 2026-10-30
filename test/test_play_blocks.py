@@ -78,6 +78,10 @@ dm.advance_act(s)  # A1 -> A2（推进时 sweep_deadline 尚未接线，手动�
 sweep_deadline(s)
 ev2 = propose_clue(s, "blood_hand")  # act_scoped: A1 已发，A2 再提议
 check("4-act-scoped-dedup", ev2 is None)
+# 4b) 已发射线索永不误报逾期（回归：act_scoped 键不匹配曾致误报归档）
+late_jrn = [e for e in s.events if e["type"] == "journal_push"
+            and "逾期" in e.get("journal_text", "")]
+check("4b-fired-never-archived", not late_jrn)
 
 # 5) must_ready_by 逾期归档：dagger(A1 死线) 在 A2 扫描 -> journal_push
 # （dagger 已在检查1发射，所以改用「未发射且死线已过」的独立线索验证）
@@ -95,9 +99,10 @@ propose_clue(ss, "dagger")  # 只发 dagger，late_one 欠着
 dm2 = DM(bb, SemiManualPort({}))
 dm2.advance_act(ss)  # 到 A2
 sweep_deadline(ss)
+sweep_deadline(ss)  # 重复扫描：归档幂等（回归：曾重复归档）
 journals = [e for e in ss.events if e["type"] == "journal_push"]
-ok5 = any("late_one" in e["journal_text"] for e in journals) and not any(
-    "dagger" in e["journal_text"] for e in journals)
+ok5 = (sum(1 for e in journals if "late_one" in e["journal_text"]) == 1
+       and not any("dagger" in e["journal_text"] for e in journals))
 check("5-deadline-sweep", ok5)
 
 # 6) jitter_text 不参与校验：A1 提议 A2 线索，带不带 jitter 都拦；

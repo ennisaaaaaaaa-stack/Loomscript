@@ -73,26 +73,40 @@ def propose_clue(session, clue_id, jitter_text=None):
                         **payload)
 
 
+def _archived_clues(session):
+    """已归档（逾期处理过）的线索集合——从 journal_push 事件的 clue_id 字段读。
+
+    journal_push 载荷带 clue_id 字段（归档专用）；没有该字段的手账不参与
+    去重。归档幂等：同一线索只归档一次，重复 sweep 不重复落账。
+    """
+    return {ev.get("clue_id") for ev in session.events
+            if ev["type"] == "journal_push" and ev.get("clue_id")}
+
+
 def sweep_deadline(session, journal_emitter=None):
     """must_ready_by 死线扫描（advance_act 调用）：到线未发 -> 归档 journal_push。
 
     journal_emitter: 可注入的 journal 发射器（默认 session.emit journal_push）。
     不 raise——「DM 嗓子哑了剧本自己走」降级的一部分。
+
+    幂等键=clue_id（与 propose_clue 同一把尺）：act_scoped 线索按合同由
+    生成器负责命名空间（A1:x / A2:x 是两条线索），引擎侧裸 clue_id 一局
+    只发一次——已发射即已履约，永不归档；已归档的不重复归档。
     """
     bundle = session.bundle
     fired = fired_clues(session)
-    next_act_idx = _act_index(bundle, session._s()["act_id"])
+    archived = _archived_clues(session)
+    cur_idx = _act_index(bundle, session._s()["act_id"])
     for clue in bundle.data.get("clues", []):
-        key = _key(clue["clue_id"], session._s()["act_id"],
-                   bool(clue.get("act_scoped", False)))
-        if key in fired:
+        cid = clue["clue_id"]
+        if cid in fired or cid in archived:
             continue
         deadline_idx = _act_index(bundle, clue.get("must_ready_by", FINAL))
-        if deadline_idx < next_act_idx:
-            text = (f"线索{clue['clue_id']}逾期未发（死线{clue.get('must_ready_by', FINAL)}"
+        if deadline_idx < cur_idx:
+            text = (f"线索{cid}逾期未发（死线{clue.get('must_ready_by', FINAL)}"
                     f"已过），已归档")
             if journal_emitter is not None:
-                journal_emitter(text)
+                journal_emitter(text, clue_id=cid)
             else:
                 session.emit(type="journal_push", journal_text=text,
-                             act_id=session._s()["act_id"])
+                             clue_id=cid, act_id=session._s()["act_id"])
