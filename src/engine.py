@@ -285,4 +285,8 @@ class PianistPort(AgentPort):
         req = _u.Request(self.endpoint, data=payload,
                          headers={"Content-Type": "application/json"})
         with _u.urlopen(req, timeout=30) as resp:
-            return _json.load(resp)["line"]
+            data = _json.load(resp)
+        if not data.get("line"):  # 服务报错（预算闸/无key/异常）时给可读降级，不炸引擎
+            detail = data.get("detail") or data.get("error") or "no line"
+            return f"……（pianist 档：服务报错降级 | {detail}）"
+        return data["line"]
