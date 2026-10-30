@@ -48,6 +48,7 @@
     },
     "clue_id": {"type": "string", "description": "clue_found 事件：搜证所得线索 id"},
     "journal_text": {"type": "string", "description": "journal_push 事件：DM 手账推送内容"},
+    "error_code": {"type": "string", "description": "error 事件：机器可读错误码（如 dm_degraded / agent_unreachable），前端按码出提示"},
     "review_text": {"type": ["string", "null"], "description": "game_end/review 事件的复盘内容（game_end 时刻可空，复盘由 review 事件补）"}
   }
 }

@@ -8,7 +8,7 @@
     "session_id": {"type": "string"},
     "bundle_id": {"type": "string"},
     "act_id": {"type": "string", "description": "当前幕"},
-    "scene_id": {"type": "string", "description": "当前场景"},
+    "scene_id": {"type": ["string", "null"], "description": "当前场景；推幕完成但尚未进入下一场景时为 null"},
     "seq": {"type": "integer", "description": "事件流指针（已应用到本快照的最后事件序号）"},
     "character_states": {
       "type": "object",

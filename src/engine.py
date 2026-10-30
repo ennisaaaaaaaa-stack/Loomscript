@@ -84,8 +84,9 @@ class Session:
         elif t == "scene_begin":
             self._s()["scene_id"] = ev["scene_id"]
         elif t in ("player_line", "agent_line"):
-            cs = self._s()["character_states"][ev["character_id"]]
-            cs["lines_spoken"] += 1
+            cid = ev["character_id"]
+            if cid in self._s()["character_states"]:  # DM 等非 bundle 说话人不计数
+                self._s()["character_states"][cid]["lines_spoken"] += 1
         elif t == "reveal":
             for k in ev.get("reveal_keys", []):
                 for cid, cs in self._s()["character_states"].items():
@@ -207,7 +208,7 @@ class SemiManualPort(AgentPort):
 
     def respond(self, session, cid):
         st = session._s()
-        nth = st["character_states"][cid]["lines_spoken"]
+        nth = st["character_states"].get(cid, {}).get("lines_spoken", 0)
         return self.script.get((cid, st["scene_id"], nth),
                                "……（半人工档：无预排练台词）")
 
