@@ -29,7 +29,8 @@ from fastapi.responses import StreamingResponse
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 from engine import Bundle, Session, SemiManualPort, ContractError  # noqa: E402
-from dm import DM, assemble_character_prompt, assemble_dm_prompt, DM_ID  # noqa: E402
+from dm import (DM, assemble_character_prompt, assemble_dm_prompt, DM_ID,  # noqa: E402
+                channel_history, digest_private_channels)
 from memory import MemoryStore  # noqa: E402
 
 BUNDLES_DIR = ROOT / "bundles"
@@ -229,7 +230,8 @@ def agent_view(sid: str, cid: str):
     with room.lock:
         return assemble_character_prompt(
             room.bundle, room.session._s()["act_id"], cid,
-            room.session.events, {})
+            room.session.events,
+            {f"dm:{cid}": channel_history(room.session.events, f"dm:{cid}")})
 
 
 @app.get("/games/{sid}/dm_prompt")
@@ -242,7 +244,9 @@ def dm_prompt(sid: str):
             mem = {"brief": brief_fn()}
         return assemble_dm_prompt(room.bundle, room.session.events,
                                   dm_memory=mem,
-                                  user_profile=room.dm.user_profile)
+                                  user_profile=room.dm.user_profile,
+                                  private_digest=digest_private_channels(
+                                      room.session.events))
 
 
 @app.get("/games/{sid}/memory")

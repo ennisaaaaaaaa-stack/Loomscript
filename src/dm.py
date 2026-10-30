@@ -88,11 +88,14 @@ def assemble_character_prompt(bundle, act_id, character_id, events, channel_hist
     return material
 
 
-def assemble_dm_prompt(bundle, events, dm_memory=None, user_profile=None):
+def assemble_dm_prompt(bundle, events, dm_memory=None, user_profile=None,
+                       private_digest=None):
     """DM 的 prompt 材料——唯一全知点。
 
     DM = 认识用户的主持人（10/30拍板）：可陪伴可交流，复盘环节自由交流归 DM。
     全知含：完整世界剧本（全部幕）、所有角色秘密、操作指引、调度表。
+    私聊隔离（10/30拍板）：DM 拿私聊摘要不拿原文——digest_private_channels
+    产出确定性摘要；原文只回各自角色（见 assemble_character_prompt）。
     """
     return {
         "role": "dm",
@@ -100,6 +103,7 @@ def assemble_dm_prompt(bundle, events, dm_memory=None, user_profile=None):
         "full_script": bundle.data,  # 全知：不切片
         "memory": dm_memory or {},  # tideline 骨架版（跨局记忆回流）
         "user_profile": user_profile or {},  # 「记得你」的原料
+        "private_channel_digest": private_digest or {},
         "law": "角色不知道的未来你知道；但你以主持人身份吞吐信息，不替玩家做决定。",
     }
 
@@ -107,6 +111,40 @@ def assemble_dm_prompt(bundle, events, dm_memory=None, user_profile=None):
 # ---------------------------------------------------------------------------
 # 行动卡（10/30 DM 骨架三件套之一）
 # ---------------------------------------------------------------------------
+
+def channel_history(events, channel):
+    """从事件流捞出指定 channel 的对话原文（角色墙的私聊数据源）。
+
+    agent_line 和 player_line 都算——私聊窗是双方对话，缺一边就拼不出语境。
+    """
+    return [{"seq": ev["seq"], "character_id": ev.get("character_id"),
+             "text": ev.get("text", "")}
+            for ev in events
+            if ev.get("type") in ("agent_line", "player_line")
+            and ev.get("channel") == channel]
+
+
+def digest_private_channels(events, recent=2, trunc=50):
+    """私聊摘要（10/30拍板：DM 拿摘要不拿原文——省 token，逼 DM 抓大放小）。
+
+    确定性摘要，无 LLM：每 channel = 条数 + 总字数 + 最近 recent 条（每条截断
+    trunc 字）。LLM 蒸馏是后续升级位（distill_llm 钩子已有），骨架先立结构。
+    """
+    per = {}
+    for ev in events:
+        ch = ev.get("channel", "")
+        if ev.get("type") not in ("agent_line", "player_line") or not ch.startswith("dm:"):
+            continue
+        cid = ch[3:]
+        d = per.setdefault(cid, {"messages": 0, "chars": 0, "recent": []})
+        d["messages"] += 1
+        d["chars"] += len(ev.get("text", ""))
+        d["recent"].append(ev.get("text", ""))
+    for d in per.values():
+        d["recent"] = [t[:trunc] + ("…" if len(t) > trunc else "")
+                       for t in d["recent"][-recent:]]
+    return per
+
 
 def action_cards(bundle, act_id, character_id):
     """给角色/玩家的可选行动提示。v0: 从当前幕场景的 choices 直取 + 通用三件。"""
