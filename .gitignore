@@ -4,3 +4,6 @@ __pycache__/
 # 运行时产物：对局事件流落盘（本地保留，不进库）
 sessions/
 loom_jobs/
+
+# DM 记忆库（跨局持久，本地运行时数据不进库）
+dm_memory/
