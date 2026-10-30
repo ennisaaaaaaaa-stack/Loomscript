@@ -258,7 +258,16 @@ class DM:
             if inter:
                 kw["interlude"] = inter
             session.emit(**kw)
-            session.emit(type="game_end", review_text=None)
+            from play_blocks import judge_ending
+            ending = judge_ending(session)
+            kw = dict(type="game_end", review_text=None)
+            if ending:
+                kw.update(ending_id=ending["id"],
+                          ending_title=ending.get("title", ""),
+                          ending_text=ending.get("text", ""))
+                if ending.get("cg_id"):
+                    session._s()["cg_unlocked"].append(ending["cg_id"])
+            session.emit(**kw)
             self._archive(session, act_ended=acts[i], final=True)
 
     # -- 手账（journal_push 的原料池） ---------------------------------------

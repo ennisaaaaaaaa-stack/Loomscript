@@ -53,6 +53,9 @@
     "pose": {"type": "string", "description": "台词时刻的动作/姿态标注（agent_line/player_line 可带）。生成管线订阅事件流按此异步生成人物差分立绘；前端先显后换，后端不阻塞"},
     "interlude": {"type": "object", "description": "act_end 事件：本幕收尾过场材料（回显 bundle.acts[].interlude），前端直接从事件取料演出，不必反查 bundle", "properties": {"text": {"type": "string"}, "image_id": {"type": "string"}}},
     "error_code": {"type": "string", "description": "error 事件：机器可读错误码（如 dm_degraded / agent_unreachable），前端按码出提示"},
+    "ending_id": {"type": "string", "description": "game_end 事件：结局判定命中的结局 id（引擎按 endgame.priority 评估 endings 条件）"},
+    "ending_title": {"type": "string", "description": "game_end 事件：结局标题"},
+    "ending_text": {"type": "string", "description": "game_end 事件：结局文本（随事件下发，不进 bundle 预发货，防 F12）"},
     "review_text": {"type": ["string", "null"], "description": "game_end/review 事件的复盘内容（game_end 时刻可空，复盘由 review 事件补）"}
   }
 }

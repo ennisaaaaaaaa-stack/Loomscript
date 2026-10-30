@@ -195,7 +195,7 @@ def enter_scene(sid: str, body: dict):
 
 
 DM_ACTIONS = ("opening", "propose_play", "deal_cards", "advance_act",
-              "review", "note", "propose_clue")
+              "review", "note", "propose_clue", "draw_card")
 
 
 @app.post("/games/{sid}/dm")
@@ -219,6 +219,14 @@ def dm_action(sid: str, body: dict):
             room.dm.review(room.session, body.get("review_text", ""))
         elif action == "note":
             room.dm.note(room.session, body["journal_text"])
+        elif action == "draw_card":
+            from play_blocks import draw_card as pb_draw_card
+            try:
+                pb_draw_card(room.session, body["card_id"],
+                             character_id=body.get("character_id"),
+                             jitter_text=body.get("jitter_text"))
+            except ContractError as e:
+                raise HTTPException(400, str(e))
         elif action == "propose_clue":
             try:
                 pb_propose_clue(room.session, body["clue_id"],

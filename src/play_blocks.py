@@ -66,6 +66,10 @@ def propose_clue(session, clue_id, jitter_text=None):
         return None  # 幂等：同一线索一局只发一次
 
     payload = dict(clue.get("payload") or {})
+    # 引擎防御：payload 键不得撞 emit 保留字段（type/act_id/clue_id 等）——
+    # 撞名键丢弃不报错（数据侧的展示字段，不是引擎字段）
+    for k in ("type", "act_id", "session_id", "seq", "ts", "clue_id"):
+        payload.pop(k, None)
     if jitter_text is not None:
         payload["jitter_text"] = jitter_text
     return session.emit(type="clue_found", clue_id=clue_id,
@@ -110,3 +114,95 @@ def sweep_deadline(session, journal_emitter=None):
             else:
                 session.emit(type="journal_push", journal_text=text,
                              clue_id=cid, act_id=session._s()["act_id"])
+
+
+# ---------------------------------------------------------------------------
+# 象征卡发射 + 结局判定（D1 晚补课：她点题「抽卡没人发射」「结局分支」）
+# ---------------------------------------------------------------------------
+
+def draw_card(session, card_id, character_id=None, jitter_text=None):
+    """DM 提议抽象征卡。引擎按 bundle.cards 校验放行；幂等（同局同卡一次）。
+
+    返回 card_draw 事件；不存在 -> ContractError；已抽过 -> None。
+    character_id 记归属（谁抽的），不影响校验。
+    """
+    table = {c["id"]: c for c in session.bundle.data.get("cards", [])}
+    card = table.get(card_id)
+    if card is None:
+        raise ContractError(f"unknown card: {card_id}")
+    drawn = {e.get("card_id") for e in session.events if e["type"] == "card_draw"}
+    if card_id in drawn:
+        return None
+    kw = dict(type="card_draw", card_id=card_id,
+              act_id=session._s()["act_id"])
+    if character_id is not None:
+        kw["character_id"] = character_id
+    if jitter_text is not None:
+        kw["text"] = jitter_text
+    return session.emit(**kw)
+
+
+def public_testimony_count(session):
+    """公开证言数（END01 口径）：main 通道 player_line 的唯一署名数。
+
+    endings.rules 原文：六名玩家在各自存活窗口内明确公开且引擎确认的
+    唯一署名人数，重复提交只计一次；死亡不能阻止已有证词留存。
+    引擎侧口径：署名=character_id 去重；存活窗口=main 发言当时 alive
+    （死者不能在 main 说话——engine.line 已拦，因此事件流里的 main
+    player_line 天然都是存活窗口内的）。死亡不追溯删除。
+    """
+    signers = set()
+    for ev in session.events:
+        if (ev["type"] == "player_line" and ev.get("channel", "main") == "main"):
+            signers.add(ev.get("character_id"))
+    return len(signers)
+
+
+def _ending_cg(bundle, ending):
+    """结局 -> cg_id。endings 数据自带 cg 映射则用之；否则 None。"""
+    for e in bundle.data.get("endgame", {}).get("endings", []):
+        if e["id"] == ending["id"] and e.get("cg_id"):
+            return e["cg_id"]
+    return ending.get("cg_id")
+
+
+def judge_ending(session):
+    """结局判定：按 endgame.priority 依序评估 endings，命中即返回。
+
+    条件求值（v0 口径，endings.json rules 的引擎映射）：
+      public_testimony_count_min -> public_testimony_count(session)
+      archive_preserved          -> 事件流存在 archive_preserved 事实
+                                    （reveal key 'archive_preserved' 或
+                                    endgame 提交；v0: reveal 口径）
+      fallback_when_END01_false  -> 兜底标记：仅在按序评估到达且
+                                    END01 未命中时为真（数据自明，
+                                    引擎不特判——把它当普通布尔）
+    无 endings 数据 -> None（旧 bundle 兼容）。
+    """
+    eg = session.bundle.data.get("endgame", {})
+    endings = eg.get("endings")
+    if not endings:
+        return None
+    priority = eg.get("priority") or [e["id"] for e in endings]
+    by_id = {e["id"]: e for e in endings}
+    testimony = public_testimony_count(session)
+    preserved = any(
+        ev["type"] == "reveal" and "archive_preserved" in ev.get("reveal_keys", [])
+        for ev in session.events)
+    for eid in priority:
+        e = by_id.get(eid)
+        if e is None:
+            continue
+        cond = e.get("condition") or {}
+        ok = True
+        if "public_testimony_count_min" in cond:
+            ok = ok and testimony >= cond["public_testimony_count_min"]
+        if "archive_preserved" in cond:
+            ok = ok and (cond["archive_preserved"] == preserved)
+        if "fallback_when_END01_false" in cond:
+            # 兜底结局：END01 已按序评估未命中才轮到它（priority 顺序保证）
+            ok = ok and (cond["fallback_when_END01_false"] is True)
+        if ok:
+            return {"id": e["id"], "title": e.get("title", ""),
+                    "text": e.get("text", ""), "cg_id": e.get("cg_id")}
+    return None
