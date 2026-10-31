@@ -7,3 +7,4 @@ loom_jobs/
 
 # DM 记忆库（跨局持久，本地运行时数据不进库）
 dm_memory/
+.pianist.env

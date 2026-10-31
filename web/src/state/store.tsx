@@ -75,7 +75,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     stopLive()
     setAssetBase(API_BASE)
     const bundle = normalizeBundle(await api.bundle(bundleId, role))
-    const g = await api.createGame(bundleId)
+    // port: 'pianist' — DM 自动接话（pianist_service 8741 真调 LLM，缺服务时降级不炸）
+    const g = await api.createGame(bundleId, { port: 'pianist' })
     lastSeq.current = -1
     setHandoff({ bundle, events: [], snapshot: normalizeSnapshot(g.snapshot)! })
     setServerSnapshot(normalizeSnapshot(g.snapshot))
