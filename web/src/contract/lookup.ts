@@ -21,6 +21,8 @@ export const assetSrc = (a?: { uri?: unknown; url?: unknown; status?: unknown })
   if (!u || /^(https?:|data:|blob:|\/)/.test(u) || !assetBase) return u
   return `${assetBase}/${u}`
 }
+/** 立绘：bundle.assets 里还没登记，先按仓库 assets/portraits/<角色id>.png 约定取；没有后端时不取 */
+export const portraitSrc = (id: string) => (assetBase ? `${assetBase}/assets/portraits/${encodeURIComponent(id)}.png` : undefined)
 /** 道具图标按 ICON_<prop_id> 约定，卡面 asset id 即卡 id */
 export const propIcon = (b: Bundle, id: string) => assetSrc(findAsset(b, `ICON_${id}`) ?? findAsset(b, b.props.find((p) => p.id === id)?.cg_id))
 export const cardArt = (b: Bundle, id: string) => assetSrc(b.assets?.find((a) => a.id === id && a.kind === 'card_art'))
