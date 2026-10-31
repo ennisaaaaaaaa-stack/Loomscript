@@ -14,9 +14,9 @@ const ROUTES = [
 ]
 
 function useHash() {
-  const [h, setH] = useState(location.hash || '#/play')
+  const [h, setH] = useState(location.hash || '#/library')
   useEffect(() => {
-    const on = () => setH(location.hash || '#/play')
+    const on = () => setH(location.hash || '#/library')
     addEventListener('hashchange', on)
     return () => removeEventListener('hashchange', on)
   }, [])
@@ -26,7 +26,7 @@ function useHash() {
 export function App() {
   const hash = useHash()
   const { sourceLabel, loadBuiltin, load, loadError } = useStore()
-  const route = ROUTES.find((r) => hash.startsWith(r.path)) ?? ROUTES[2]
+  const route = ROUTES.find((r) => hash.startsWith(r.path)) ?? ROUTES[1]
 
   return (
     <div className="app">

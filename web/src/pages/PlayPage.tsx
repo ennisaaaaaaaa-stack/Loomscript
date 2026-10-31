@@ -5,6 +5,7 @@ import { describe } from '../components/eventView'
 import { FramePanel } from '../components/FramePanel'
 import { LiveBar } from '../components/LiveBar'
 import { ReplayBar } from '../components/ReplayBar'
+import { Theater } from '../components/Theater'
 import { Timeline, type TimelineItem } from '../components/Timeline'
 import { findAct, findChar, findChoice, findScene } from '../contract/lookup'
 import { api } from '../data/live'
@@ -16,6 +17,8 @@ export function PlayPage() {
   // 每个私聊窗已读到的 seq；窗开着就视为已读
   const [readSeq, setReadSeq] = useState<Record<string, number>>({})
   const tlRef = useRef<HTMLDivElement>(null)
+  // 已发出、后端还没回的一句：先显示出来，并挂一个「正在想」
+  const [pending, setPending] = useState<{ text: string; channel: string } | null>(null)
 
   const threads = frame?.threads ?? {}
   useEffect(() => {
@@ -47,9 +50,17 @@ export function PlayPage() {
   const player = findChar(b, myRole)
   const meAlive = displaySnapshot.character_states[myRole ?? '']?.alive !== false
   const canTalk = !!live && !!myRole && live.conn === 'open' && !live.busy
-  const say = (text: string, channel: string) => runAction((sid) => api.say(sid, myRole!, text, channel))
+  const say = async (text: string, channel: string) => {
+    setPending({ text, channel })
+    try { await runAction((sid) => api.say(sid, myRole!, text, channel)) } finally { setPending(null) }
+  }
+  const pendingIn = (ch: string) => pending && pending.channel === ch ? (
+    <>
+      <div className="msg msg--mine msg--pending"><div className="msg__body"><div className="msg__text">{pending.text}</div></div></div>
+      {ch === 'main' && <div className="typing"><span>主持人正在想</span><i /><i /><i /></div>}
+    </>
+  ) : null
   const openDm = (id: string) => setOpenDms((o) => (o.includes(id) ? o : [...o, id].slice(-3)))
-  const current = handoff.events.find((e) => e.seq === cursor)
   const lastError = frame.errors.at(-1)
   const showError = lastError && cursor - lastError.seq <= 3
 
@@ -71,22 +82,19 @@ export function PlayPage() {
 
         <div className="play__main">
           <div className="stage">
-            <AssetFrame bundle={b} assetId={scene?.image_id} label={scene ? `场景 ${scene.scene_id}` : act ? act.title : '幕布'} ratio="21 / 9" />
+            <AssetFrame bundle={b} assetId={scene?.image_id ?? act?.scenes[0]?.image_id /* 进场景前先用本幕首场的图 */} label={scene ? `场景 ${scene.scene_id}` : act ? act.title : '幕布'} ratio="21 / 9" />
             <div className="stage__cap">
               <div className="stage__act">{act ? `${act.act_id} · ${act.title}` : frame.phase === 'pregame' ? '开场前' : ''}</div>
               {scene ? <p>{scene.text}</p> : act && <p>{act.world_info}</p>}
             </div>
-            {current && !('__unknown' in current) && current.type === 'act_begin' && (
-              <div className="actcard" key={current.seq}>
-                <small>{current.act_id}</small>
-                <strong>{findAct(b, current.act_id)?.title}</strong>
-                <p>{findAct(b, current.act_id)?.world_info}</p>
-              </div>
-            )}
-            {frame.phase === 'ended' && cursor === maxSeq && (
+            {frame.phase === 'ended' && cursor === maxSeq && !frame.ending && (
               <a className="stage__end" href="#/review">终局 · 查看复盘 →</a>
             )}
           </div>
+          <Theater events={handoff.events} cursor={cursor} bundle={b} onReview={() => {
+            if (live && frame.reviewText === null) void runAction((sid) => api.dm(sid, 'review'))
+            location.hash = '#/review'
+          }} />
           {showError && (
             <div className="errbar" role="alert">
               <b>降级提示</b> {lastError.message} <code>{lastError.code}</code>
@@ -117,6 +125,7 @@ export function PlayPage() {
             events={threads.main ?? []}
             bundle={b}
             me={myRole}
+            extra={pendingIn('main')}
             input={{
               placeholder: !live ? `以「${player?.name ?? '玩家'}」发言（回放模式下不可用）` : !meAlive ? '你已死亡，转为观演，只能私聊' : `以「${player?.name ?? myRole}」发言`,
               disabled: !canTalk || !meAlive,
@@ -145,7 +154,7 @@ export function PlayPage() {
             events={threads[id] ?? []}
             bundle={b}
             me={myRole}
-            extra={!(threads[id]?.length) ? <div className="sys"><div className="sys__sub">还没有消息。角色主动找你时头像会亮。</div></div> : undefined}
+            extra={pendingIn(`dm:${id}`) ?? (!(threads[id]?.length) ? <div className="sys"><div className="sys__sub">还没有消息。角色主动找你时头像会亮。</div></div> : undefined)}
             input={{ placeholder: live ? '私聊' : '回放模式下不可用', disabled: !canTalk, onSend: (t) => void say(t, `dm:${id}`) }}
             onClose={() => setOpenDms((o) => o.filter((x) => x !== id))}
           />

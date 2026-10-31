@@ -12,7 +12,7 @@ export function AssetFrame({ bundle, assetId, label, ratio = '16 / 9', onClick }
   const show = src && failed !== src
   return (
     <div className={`asset ${show ? '' : 'asset--empty'}`} style={{ aspectRatio: ratio }} onClick={onClick}>
-      {show ? <img src={src} alt={label ?? assetId} onError={() => setFailed(src)} /> : (
+      {show ? <img key={src} src={src} alt={label ?? assetId} onError={() => setFailed(src)} /> : (
         <div className="asset__ph">
           <span>{label ?? '插图'}</span>
           <code>{assetId ?? '无 image_id'}{asset ? ` · ${asset.status === 'pending' ? '生成中' : '未出图'}` : ''}</code>
