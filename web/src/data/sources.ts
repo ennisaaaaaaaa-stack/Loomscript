@@ -3,7 +3,7 @@
  *  - 内置 fixtures：b6f1965 真实录制 / v0.1 预演 mock
  *  - ?src=<url>：拉一份 handoff JSON（handoff 升版后直接指过去）
  *  - 拖入/选择本地 handoff JSON
- *  - TODO(后端合同落地后)：直播流。onEvents 收增量事件，store 里用 mergeEvents 合并即可。
+ *  - 直播：见 data/live.ts（server.py 建局 + SSE）
  */
 // 真实录制直接读仓库里的 demos/frontend_handoff.json，handoff 升版前端自动跟上
 import real from '../../../demos/frontend_handoff.json'
@@ -25,6 +25,3 @@ export async function loadFromUrl(url: string): Promise<unknown> {
 export async function loadFromFile(file: File): Promise<unknown> {
   return JSON.parse(await file.text())
 }
-
-/** 直播接口占位：后端给出 SSE/WS 地址和消息格式后在这里实现。 */
-export interface LiveConnection { close(): void; sendPlayerLine(text: string, channel: string): Promise<void> }

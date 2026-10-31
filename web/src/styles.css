@@ -207,3 +207,9 @@ blockquote { margin: 0; padding: 14px 18px; border-left: 3px solid var(--gold); 
 .ending small { color: var(--gold); letter-spacing: .2em; }
 .ending strong { display: block; font-size: 22px; margin: 4px 0; }
 .ending p { margin: 0; line-height: 1.8; }
+.live { background: rgba(201,164,92,.05); }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); }
+.dot--open { background: var(--ok); box-shadow: 0 0 0 3px rgba(111,163,107,.25); }
+.dot--error { background: var(--blood); }
+.small { font-size: 12px; }
+.picker { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }

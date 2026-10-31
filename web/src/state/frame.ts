@@ -150,7 +150,9 @@ export function diffSnapshot(derived: Snapshot, server: Snapshot): string[] {
     const d = derived.character_states[id]
     if (!d) { out.push(`character_states.${id}`); continue }
     if (d.lines_spoken !== cs.lines_spoken) out.push(`character_states.${id}.lines_spoken`)
-    if (!eq([...d.knowledge_unlocked].sort(), [...cs.knowledge_unlocked].sort())) out.push(`character_states.${id}.knowledge_unlocked`)
+    // 按集合比：引擎重复揭示同一 key 时会追加重复项，前端去重，语义相同
+    const set = (xs: string[]) => [...new Set(xs)].sort()
+    if (!eq(set(d.knowledge_unlocked), set(cs.knowledge_unlocked))) out.push(`character_states.${id}.knowledge_unlocked`)
   }
   return out
 }

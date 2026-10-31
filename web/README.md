@@ -3,8 +3,9 @@
 仓库前端。对着 `contracts/` 和 `demos/frontend_handoff.json`（b6f1965）搭的壳：**events → 时间线，snapshot → 当前帧，bundle → 剧本库**。字段即合同。
 
 ```bash
+# 后端（仓库根目录）：pip install fastapi uvicorn jsonschema && python src/server.py   → :8740
 npm install
-npm run dev          # http://localhost:5173
+npm run dev          # http://localhost:5173 ；后端不在默认地址就加 ?api=http://host:port
 npm test             # 合同/回放单测
 npm run build        # 正式构建 → dist/
 npm run build:single # 单文件 HTML（fixtures 内联）→ dist-single/index.html，可直接发群里双击打开
@@ -29,7 +30,7 @@ npm run build:single # 单文件 HTML（fixtures 内联）→ dist-single/index.
 - 顶栏「载入 handoff…」：直接选新版 handoff JSON。
 - `?src=<url>`：启动时从 URL 拉 handoff。
 - 生成页 `?gen=<SSE 地址>`：每条 `message.data` 是一条 gen 进度事件；不带参数就本地按合同形状模拟。
-- 对局直播流：`src/data/sources.ts` 留了 `LiveConnection`，后端给出地址后实现；增量事件用 `mergeEvents` 合并（按 seq 去重排序）。
+- **直播**（`src/data/live.ts`）：剧本库从 `GET /bundles` 列剧本，选角色后 `POST /games` 开局，`GET /games/{id}/stream`（SSE）收事件，断线按 seq 续传；发言走 `/say`（私聊窗发 `channel: dm:<id>`），顶栏按钮走 `/scene`、`/dm`（推幕、发行动卡、复盘）。动作返回的事件与 SSE 推来的按 seq 去重合并。后端连不上时自动退回回放模式。
 
 ## 合同处理（`src/contract/`，对着仓库 `contracts/`）
 
@@ -46,12 +47,11 @@ npm run build:single # 单文件 HTML（fixtures 内联）→ dist-single/index.
 
 ## 还没定的（后端定了改一处即可）
 
-1. 剧本列表接口（剧本库现在只有当前 handoff 里那一本）→ `LibraryPage.tsx`
-2. 对局直播地址和玩家发言接口（现在是回放模式，输入框禁用）→ `data/sources.ts`
-3. 生成任务怎么把文本交给后端（POST 还是 query）→ `data/gen.ts` `startGen`
-4. 复盘自由交流接口（现在只本地回显）→ `ReviewPage.tsx`
-5. 合同里没有封面 kind：封面先取第一张出了图的 `scene_image` → `CoverCard.tsx`
+1. 生成任务的后端入口（server.py 还没有生成端点）→ `data/gen.ts` `startGen`
+2. 资产图：bundle 里 `uri` 是相对路径、`status: pending`，图出来以后需要后端或静态目录提供 → `AssetFrame.tsx`
+3. 复盘自由交流接口（现在只本地回显）→ `ReviewPage.tsx`
+4. 合同里没有封面 kind：封面先取第一张出了图的 `scene_image` → `CoverCard.tsx`
 
 ## 信息隔离
 
-按人物信息隔离 V3「普通前端只显示当前用户获准的文本与素材」：剧本库详情不显示 NPC 的 `secret_sheet`；NPC 的已知信息只显示服务端 snapshot 给的，前端不自己推断；reveal 文字只用事件里下发的 `reveal_texts`。
+按人物信息隔离 V3「普通前端只显示当前用户获准的文本与素材」：`GET /bundles/{id}?viewer=<角色>` 只下发该角色自己的 `secret_sheet`，演员包、DM 预生成台词、死亡定义、线索投放元数据都不出服务端；NPC 的已知信息只显示服务端 snapshot 给的，前端不自己推断；reveal 文字只用事件里下发的 `reveal_texts`。

@@ -6,8 +6,8 @@ import { Avatar } from './Avatar'
 
 
 /** 当前帧：照 snapshot 摆。clue/journal 是 v0.1 事件派生的，snapshot 未来若加字段再切过去。 */
-export function FramePanel({ bundle, snap, frame, unread, onOpenDm, fromServer }: {
-  bundle: Bundle; snap: Snapshot; frame: Frame; unread: Record<string, number>
+export function FramePanel({ bundle, snap, frame, unread, onOpenDm, fromServer, me }: {
+  bundle: Bundle; snap: Snapshot; frame: Frame; unread: Record<string, number>; me?: string
   onOpenDm: (id: string) => void; fromServer: boolean
 }) {
   return (
@@ -21,12 +21,12 @@ export function FramePanel({ bundle, snap, frame, unread, onOpenDm, fromServer }
           const n = unread[c.id] ?? 0
           return (
             <li key={c.id} className={st?.on_stage === false || st?.alive === false ? 'off' : ''}>
-              <button className="roster__btn" onClick={() => onOpenDm(c.id)} disabled={c.is_player} title={c.is_player ? '你' : `私聊 ${c.name}`}>
+              <button className="roster__btn" onClick={() => onOpenDm(c.id)} disabled={c.id === me} title={c.id === me ? '你' : `私聊 ${c.name}`}>
                 <Avatar c={c} size={32} />
                 {n > 0 && <span className="badge">{n}</span>}
               </button>
               <div>
-                <div>{c.name}{c.is_player && <span className="tag">你</span>}{st?.alive === false && <span className="tag tag--dim">已死·观演</span>}</div>
+                <div>{c.name}{c.id === me && <span className="tag">你</span>}{st?.alive === false && <span className="tag tag--dim">已死·观演</span>}</div>
                 <small>台词 {st?.lines_spoken ?? 0} · 已知 {st?.knowledge_unlocked.length ?? 0}</small>
               </div>
             </li>

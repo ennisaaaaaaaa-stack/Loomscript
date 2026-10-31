@@ -9,6 +9,8 @@
 - GET  /games/{id}/snapshot
 - GET  /games/{id}/view/{cid}   角色 agent_view（记忆层/pianist 挂点）
 - GET  /games/{id}/dm_prompt     DM 全知材料（记忆层挂点）
+- GET  /bundles             剧本列表（前端剧本库）
+- GET  /bundles/{id}        玩家视图 bundle（剥掉演员包/私密本等服务端材料）
 - GET  /healthz
 
 事件流 jsonl 落盘（sessions/{session_id}.jsonl）：服务重启可恢复，
@@ -121,6 +123,40 @@ def get_bundle(bundle_id: str) -> Bundle:
             raise HTTPException(404, f"bundle {bundle_id} not found")
         BUNDLE_CACHE[bundle_id] = Bundle.load(path)
     return BUNDLE_CACHE[bundle_id]
+
+
+# ---------------------------------------------------------------- 剧本库（前端）
+
+def public_bundle(data: dict, viewer: str | None = None) -> dict:
+    """给前端的玩家视图：剧本库/对局页要的结构与文案。
+    剥掉演员包、DM 预生成台词、私密本（viewer 本人的除外）、死亡定义、
+    线索投放元数据——这些只在服务端用，不进浏览器（防 F12 剧透）。"""
+    hidden = {"actor_turns", "dm_lines", "deaths", "source_pack"}
+    out = {k: v for k, v in data.items() if k not in hidden}
+    out["characters"] = [
+        c if c.get("id") == viewer else {k: v for k, v in c.items() if k != "secret_sheet"}
+        for c in data.get("characters", [])]
+    if "clues" in data:
+        out["clues"] = [{k: c[k] for k in ("clue_id", "title", "text", "visible_at") if k in c}
+                        for c in data["clues"]]
+    return out
+
+
+@app.get("/bundles")
+def list_bundles():
+    out = []
+    for p in sorted(BUNDLES_DIR.glob("*.json")):
+        b = get_bundle(p.stem).data
+        out.append({"bundle_id": p.stem, "id": b.get("id"), "title": b.get("title"),
+                    "version": b.get("version"),
+                    "characters": len(b.get("characters", [])), "acts": len(b.get("acts", []))})
+    return out
+
+
+@app.get("/bundles/{bundle_id}")
+def bundle_view(bundle_id: str, viewer: str | None = None):
+    """viewer=玩家所选角色 id：只有这个角色的 secret_sheet 会下发。"""
+    return public_bundle(get_bundle(bundle_id).data, viewer)
 
 
 # ---------------------------------------------------------------- 建局/状态

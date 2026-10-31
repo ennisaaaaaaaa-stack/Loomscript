@@ -5,14 +5,14 @@ import type { GameEvent } from '../contract/types'
 import { useStore } from '../state/store'
 
 export function ReviewPage() {
-  const { handoff, frame, serverSnapshot, snapshotDiff, cursor, maxSeq } = useStore()
+  const { handoff, frame, serverSnapshot, snapshotDiff, cursor, maxSeq, myRole } = useStore()
   const [talkTo, setTalkTo] = useState<string>('')
   const [local, setLocal] = useState<GameEvent[]>([])
   if (!handoff || !frame) return <div className="empty">加载中…</div>
   const b = handoff.bundle
   const s = serverSnapshot
-  const npcs = b.characters.filter((c) => !c.is_player)
-  const player = b.characters.find((c) => c.is_player)
+  const npcs = b.characters.filter((c) => c.id !== myRole)
+  const player = b.characters.find((c) => c.id === myRole)
   const target = talkTo || npcs[0]?.id
 
   return (
@@ -46,7 +46,7 @@ export function ReviewPage() {
                   <tr key={id}>
                     <td>{b.characters.find((c) => c.id === id)?.name ?? id}</td>
                     <td>{cs.lines_spoken}</td>
-                    <td>{cs.knowledge_unlocked.join('、') || '–'}</td>
+                    <td>{[...new Set(cs.knowledge_unlocked)].join('、') || '–'}</td>
                   </tr>
                 ))}
               </tbody>

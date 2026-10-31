@@ -3,13 +3,15 @@ import { AssetFrame } from '../components/AssetFrame'
 import { ChatWindow } from '../components/ChatWindow'
 import { describe } from '../components/eventView'
 import { FramePanel } from '../components/FramePanel'
+import { LiveBar } from '../components/LiveBar'
 import { ReplayBar } from '../components/ReplayBar'
 import { Timeline, type TimelineItem } from '../components/Timeline'
-import { findAct, findChar, findScene } from '../contract/lookup'
+import { findAct, findChar, findChoice, findScene } from '../contract/lookup'
+import { api } from '../data/live'
 import { useStore } from '../state/store'
 
 export function PlayPage() {
-  const { handoff, frame, cursor, setCursor, displaySnapshot, serverSnapshot, maxSeq } = useStore()
+  const { handoff, frame, cursor, setCursor, displaySnapshot, serverSnapshot, maxSeq, myRole, live, act: runAction } = useStore()
   const [openDms, setOpenDms] = useState<string[]>([])
   // 每个私聊窗已读到的 seq；窗开着就视为已读
   const [readSeq, setReadSeq] = useState<Record<string, number>>({})
@@ -42,7 +44,11 @@ export function PlayPage() {
   const snap = displaySnapshot
   const act = findAct(b, snap.act_id)
   const scene = findScene(b, snap.scene_id)
-  const player = b.characters.find((c) => c.is_player)
+  const player = findChar(b, myRole)
+  const meAlive = displaySnapshot.character_states[myRole ?? '']?.alive !== false
+  const canTalk = !!live && !!myRole && live.conn === 'open' && !live.busy
+  const say = (text: string, channel: string) => runAction((sid) => api.say(sid, myRole!, text, channel))
+  const openDm = (id: string) => setOpenDms((o) => (o.includes(id) ? o : [...o, id].slice(-3)))
   const current = handoff.events.find((e) => e.seq === cursor)
   const lastError = frame.errors.at(-1)
   const showError = lastError && cursor - lastError.seq <= 3
@@ -56,7 +62,7 @@ export function PlayPage() {
 
   return (
     <div className="play">
-      <ReplayBar />
+      {live ? <LiveBar frame={frame} /> : <ReplayBar />}
       <div className="play__grid">
         <div className="play__tl" ref={tlRef}>
           <h4>事件时间线 <small>{handoff.events.length}</small></h4>
@@ -89,7 +95,19 @@ export function PlayPage() {
           {frame.choices.length > 0 && (
             <div className="actions" aria-label="行动卡">
               {frame.choices.map((c) => (
-                <button key={c.seq} className="actcard-btn flip" disabled title="回放模式下不可用">{c.label}</button>
+                <button
+                  key={c.seq}
+                  className="actcard-btn flip"
+                  disabled={!canTalk}
+                  title={live ? undefined : '回放模式下不可用'}
+                  onClick={() => {
+                    // 引擎的通用三件：free_talk / ask_dm 只是提示，private 打开私聊；剧本 choice 有去向就进场景，否则当台词说出
+                    if (c.id === 'free_talk' || c.id === 'ask_dm') return document.querySelector<HTMLInputElement>('.chat--main input')?.focus()
+                    if (c.id === 'private') return openDm(b.characters.find((x) => x.id !== myRole)?.id ?? '')
+                    const to = findChoice(b, c.id)?.leads_to
+                    void (to ? runAction((sid) => api.scene(sid, to)) : say(c.label, 'main'))
+                  }}
+                >{c.label}</button>
               ))}
             </div>
           )}
@@ -98,7 +116,12 @@ export function PlayPage() {
             title={`主频道 · ${b.title}`}
             events={threads.main ?? []}
             bundle={b}
-            input={{ placeholder: player ? `以「${player.name}」发言（回放模式下不可用）` : '发言', disabled: true, onSend: () => {} }}
+            me={myRole}
+            input={{
+              placeholder: !live ? `以「${player?.name ?? '玩家'}」发言（回放模式下不可用）` : !meAlive ? '你已死亡，转为观演，只能私聊' : `以「${player?.name ?? myRole}」发言`,
+              disabled: !canTalk || !meAlive,
+              onSend: (t) => void say(t, 'main'),
+            }}
           />
         </div>
 
@@ -108,7 +131,8 @@ export function PlayPage() {
           frame={frame}
           unread={unread}
           fromServer={snap === serverSnapshot}
-          onOpenDm={(id) => setOpenDms((o) => (o.includes(id) ? o : [...o, id].slice(-3)))}
+          me={myRole}
+          onOpenDm={openDm}
         />
       </div>
 
@@ -120,8 +144,9 @@ export function PlayPage() {
             title={`私聊 · ${findChar(b, id)?.name ?? id}`}
             events={threads[id] ?? []}
             bundle={b}
+            me={myRole}
             extra={!(threads[id]?.length) ? <div className="sys"><div className="sys__sub">还没有消息。角色主动找你时头像会亮。</div></div> : undefined}
-            input={{ placeholder: '回放模式下不可用', disabled: true, onSend: () => {} }}
+            input={{ placeholder: live ? '私聊' : '回放模式下不可用', disabled: !canTalk, onSend: (t) => void say(t, `dm:${id}`) }}
             onClose={() => setOpenDms((o) => o.filter((x) => x !== id))}
           />
         ))}

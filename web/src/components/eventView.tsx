@@ -16,7 +16,8 @@ export function describe(e: GameEvent, b: Bundle): { icon: string; title: string
     case 'scene_begin': return { icon: '景', title: `场景 ${e.scene_id}`, sub: findScene(b, e.scene_id)?.text, tag }
     case 'player_line':
     case 'agent_line': return { icon: '言', title: findChar(b, e.character_id)?.name ?? e.character_id, sub: e.text, tag }
-    case 'reveal': return { icon: '✦', title: '揭示', sub: e.reveal_keys.map((k) => revealText(e, k) ?? k).join(' / '), tag }
+    // 没下发 reveal_texts 时，key 若是线索 id 就用线索标题兜底
+    case 'reveal': return { icon: '✦', title: '揭示', sub: e.reveal_keys.map((k) => revealText(e, k) ?? findClue(b, k)?.title ?? k).join(' / '), tag }
     case 'prop_gained': return { icon: '◇', title: `获得道具 · ${findProp(b, e.prop_id)?.name ?? e.prop_id}`, tag }
     case 'card_draw': return { icon: '☍', title: `抽卡 · ${findCard(b, e.card_id)?.name ?? e.card_id}`, tag }
     case 'review': return { icon: '✎', title: 'DM 复盘', sub: e.review_text ?? undefined, tag }
@@ -29,10 +30,10 @@ export function describe(e: GameEvent, b: Bundle): { icon: string; title: string
 }
 
 /** 聊天流里的一条：台词是气泡，其他事件是居中的系统卡片。 */
-export function ChatItem({ e, b }: { e: GameEvent; b: Bundle }) {
+export function ChatItem({ e, b, me }: { e: GameEvent; b: Bundle; me?: string }) {
   if (!('__unknown' in e) && (e.type === 'player_line' || e.type === 'agent_line')) {
     const c = findChar(b, e.character_id)
-    const mine = e.type === 'player_line'
+    const mine = me ? e.character_id === me : e.type === 'player_line'
     const dm = e.character_id === DM_ID
     return (
       <div className={`msg ${mine ? 'msg--mine' : ''} ${dm ? 'msg--dm' : ''}`}>
