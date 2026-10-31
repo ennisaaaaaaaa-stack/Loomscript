@@ -6,12 +6,13 @@
  *  - 模拟：拿不到模型时按合同形状本地吐事件，done 时附上当前 bundle。
  */
 import { getBackend } from './backend'
+import type { GenSpec } from '../contract/genSpec'
 import type { GenEvent } from '../contract/gen'
 import { GEN_STAGES } from '../contract/gen'
 
 export type Stop = () => void
 
-export function startGen(text: string, onEvent: (e: GenEvent) => void, mockBundle: unknown): Stop {
+export function startGen(text: string, onEvent: (e: GenEvent) => void, mockBundle: unknown, spec?: GenSpec): Stop {
   const url = new URLSearchParams(location.search).get('gen')
   if (url) {
     const es = new EventSource(`${url}${url.includes('?') ? '&' : '?'}text=${encodeURIComponent(text.slice(0, 2000))}`)
@@ -39,7 +40,7 @@ export function startGen(text: string, onEvent: (e: GenEvent) => void, mockBundl
         if (cur) ev({ stage: cur, status: 'ok', progress: 1 })
         cur = stage
         ev({ stage, status: 'running', progress: 0.3, message })
-      })
+      }, spec)
       if (cur) ev({ stage: cur, status: 'ok', progress: 1, message: `${bundle.characters.length} 个角色` })
       const scenes = bundle.acts.reduce((n: number, a: { scenes: unknown[] }) => n + a.scenes.length, 0)
       ev({ stage: 'scenes', status: 'ok', progress: 1, message: `${bundle.acts.length} 幕 ${scenes} 场` })

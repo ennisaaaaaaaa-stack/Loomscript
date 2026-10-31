@@ -8,6 +8,7 @@
  * 当前幕的演员包、自己私聊窗的历史、已揭示的知识；DM 是唯一全知点，私聊只拿摘要。
  */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { specBrief, type GenSpec, type SpecPatch } from '../contract/genSpec'
 import { DM_ID, type Bundle, type Ev, type Raw, type Session } from './engine'
 
 type SampleFn = ((input: string | { role: 'user' | 'assistant'; content: string }[], opts?: Raw) => Promise<{ text: string }>) & {
@@ -186,9 +187,10 @@ export async function reviewChat(b: Bundle, events: Ev[], cid: string, me: strin
 }
 
 /** 生成：粘贴文本 → 一份可玩的 bundle（按 contracts/bundle.schema.json 的必填字段）。 */
-export async function generateBundle(text: string, onStage: (stage: string, msg: string) => void): Promise<Raw> {
-  onStage('ingest', '读原文')
+export async function generateBundle(text: string, onStage: (stage: string, msg: string) => void, spec?: GenSpec): Promise<Raw> {
+  onStage('ingest', spec ? '读原文与创作结构' : '读原文')
   const src = text.slice(0, 12000)
+  const acts = spec?.acts ?? 3
   onStage('act_structure', '拆幕、定人物、写场景（模型生成中，约半分钟）')
   const prompt = [
     '把下面的原文改编成一个可以在线游玩的中文剧本杀剧本包，严格输出一个 JSON 对象，不要任何解释或代码块标记。',
@@ -201,8 +203,9 @@ export async function generateBundle(text: string, onStage: (stage: string, msg:
 "cards":[{"id":"CARD01","name":"象征卡名","symbol":"象征含义"}],
 "endgame":{"conditions":[{"id":"END01","description":"条件说明"}],"review_prompt":"复盘引子一句","endings":[{"id":"END01","title":"结局名","text":"结局文字两句","condition":{}}]},
 "dm_lines":{"opening":"主持人开场白","propose_play":"玩法提议","review":"复盘词","fallback":"主持人兜底台词","act_report":{"A1":"—— 第一幕 · 幕名 ——"}}}`,
-    '要求：3 幕，每幕 2 个场景；4 到 6 个角色，其中 3 到 4 个 is_player=true；6 到 8 条线索，每条线索恰好被一个场景 reveals 一次；2 到 3 个结局；3 张象征卡。文字有悬念，不要在第一幕就揭开真相。',
-    '原文：', src,
+    `要求：${acts} 幕，每幕 2 个场景；4 到 6 个角色，其中 3 到 4 个 is_player=true；${acts * 2} 到 ${acts * 2 + 2} 条线索，每条线索恰好被一个场景 reveals 一次；2 到 3 个结局；3 张象征卡。文字有悬念，不要在第一幕就揭开真相。`,
+    spec ? `创作结构（硬约束，优先于上面的数量要求；与原文冲突时以这里为准）：\n${specBrief(spec)}` : '',
+    src ? `原文：\n${src}` : '没有原文：按创作结构原创一个完整故事。',
   ].join('\n')
   const raw = await ask(prompt, { modelTier: 'default' })
   onStage('characters', '解析与校验')
@@ -214,6 +217,17 @@ export async function generateBundle(text: string, onStage: (stage: string, msg:
   b.version ??= '0.1.0'
   b.language ??= 'zh'
   b.characters = (b.characters ?? []).filter((c: Raw) => c?.id && c?.name)
+  for (const want of spec?.characters.filter((c) => c.name.trim()) ?? []) {
+    const got = b.characters.find((c: Raw) => c.name === want.name)
+    if (!got) {
+      b.characters.push({ id: `c_${b.characters.length + 1}`, name: want.name, is_player: want.is_player, public_sheet: want.identity || '身份未明', secret_sheet: [want.secret, want.goal && `你的目标：${want.goal}`].filter(Boolean).join(' '), voice: '' })
+      issues.push(`模型漏了指定角色「${want.name}」，已按你填的设定补上`)
+    } else if (got.is_player !== want.is_player) {
+      got.is_player = want.is_player
+      issues.push(`「${want.name}」的可扮演设置按你填的改回来了`)
+    }
+  }
+  if (spec?.title.trim()) b.title = spec.title.trim()
   if (!b.characters.some((c: Raw) => c.is_player)) { if (b.characters[0]) b.characters[0].is_player = true; issues.push('没有可扮演角色，已把第一个角色设为可扮演') }
   b.acts = (b.acts ?? []).filter((a: Raw) => a?.act_id && a?.scenes?.length)
   if (!b.acts.length) throw new AiError('bad_output', '生成结果里没有幕')
@@ -222,6 +236,28 @@ export async function generateBundle(text: string, onStage: (stage: string, msg:
   b.endgame ??= { conditions: [], endings: [] }
   b.endgame.conditions ??= (b.endgame.endings ?? []).map((e: Raw) => ({ id: e.id, description: e.title }))
   return { bundle: b, issues }
+}
+
+/** 创作助手：和用户聊设定，回一句话 + 对创作结构的增量修改 */
+export async function assistGen(spec: GenSpec, text: string, history: { role: 'user' | 'assistant'; text: string }[], message: string): Promise<{ reply: string; patch: SpecPatch }> {
+  const prompt = [
+    '你是 LoomScript 的剧本杀创作助手，帮用户把一个剧本的「创作结构」聊清楚：背景（标题、类型、时代/地点、基调、世界观）、幕数（2-5）、角色卡（名字、身份、秘密、目标、是否玩家可扮演）、其他要求。',
+    '风格：像一个懂行的编剧搭档，中文，直接，给具体建议；一次只追问一两个关键点；用户让你「帮我想」时就大胆替他填。',
+    '当前创作结构：', JSON.stringify({ ...spec, characters: spec.characters.map(({ key: _k, ...c }) => c) }),
+    text.trim() ? `用户贴了原文（节选）：${clip(text, 1500)}` : '用户没有贴原文。',
+    '对话：', history.slice(-10).map((h) => `${h.role === 'user' ? '用户' : '助手'}：${h.text}`).join('\n'),
+    `用户：${message}`,
+    '只输出 JSON：{"reply":"给用户的回复，≤120字","patch":{"set":{"title":"","genre":"","era":"","world":"","tone":"","acts":3,"notes":""},"add_characters":[{"name":"","identity":"","secret":"","goal":"","is_player":true}],"update_characters":[{"name":"已有角色名","secret":"新秘密"}],"remove_characters":["角色名"]}}',
+    'patch 里只放这次要改的字段，没改的省略；不改就给空对象 {}。不要改动用户没提到的已有内容。',
+  ].join('\n')
+  const raw = await ask(prompt)
+  const m = raw.match(/\{[\s\S]*\}/)
+  try {
+    const j = JSON.parse(m ? m[0] : raw)
+    return { reply: String(j.reply ?? '').trim() || '好。', patch: (j.patch && typeof j.patch === 'object' ? j.patch : {}) as SpecPatch }
+  } catch {
+    return { reply: raw, patch: {} }
+  }
 }
 
 export const degradeCopy = (e: unknown) => (e instanceof AiError && e.code === 'unavailable' ? e.message : `模型调用失败：${e instanceof Error ? e.message : String(e)}`)
