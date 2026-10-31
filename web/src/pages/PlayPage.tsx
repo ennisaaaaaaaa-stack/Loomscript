@@ -8,7 +8,7 @@ import { ReplayBar } from '../components/ReplayBar'
 import { Theater } from '../components/Theater'
 import { Timeline, type TimelineItem } from '../components/Timeline'
 import { findAct, findChar, findChoice, findScene } from '../contract/lookup'
-import { api } from '../data/live'
+import { api } from '../data/backend'
 import { useStore } from '../state/store'
 
 export function PlayPage() {
@@ -57,7 +57,7 @@ export function PlayPage() {
   const pendingIn = (ch: string) => pending && pending.channel === ch ? (
     <>
       <div className="msg msg--mine msg--pending"><div className="msg__body"><div className="msg__text">{pending.text}</div></div></div>
-      {ch === 'main' && <div className="typing"><span>主持人正在想</span><i /><i /><i /></div>}
+      <div className="typing"><span>{ch === 'main' ? '主持人' : findChar(b, ch.slice(3))?.name ?? '对方'}正在想</span><i /><i /><i /></div>
     </>
   ) : null
   const openDm = (id: string) => setOpenDms((o) => (o.includes(id) ? o : [...o, id].slice(-3)))

@@ -9,7 +9,7 @@ import { useStore } from '../state/store'
 const SEV_LABEL = { error: '错误', warning: '警告', info: '提示' } as const
 
 export function GenPage() {
-  const { handoff, load } = useStore()
+  const { handoff, load, startLive } = useStore()
   const [text, setText] = useState('')
   const [view, setView] = useState<GenView | null>(null)
   const stop = useRef<Stop | null>(null)
@@ -52,7 +52,7 @@ export function GenPage() {
         <textarea value={text} onChange={(e) => setText(e.target.value)} placeholder="粘贴原著或剧本文本" rows={10} />
         <div className="row">
           <button className="primary" disabled={!text.trim() || running} onClick={run}>一键生成</button>
-          <span className="muted">{text.length} 字{new URLSearchParams(location.search).get('gen') ? '' : ' · 本地模拟进度（加 ?gen=<SSE地址> 接后端）'}</span>
+          <span className="muted">{text.length} 字 · 浏览器引擎模式下由 Claude 生成，约半分钟到一分钟</span>
         </div>
       </section>
       <section>
@@ -62,9 +62,17 @@ export function GenPage() {
           <div className="gen__preview">
             <h4>bundle 预览</h4>
             <CoverCard bundle={view.bundle} compact />
-            <a className="primary" href="#play" onClick={() => {
-              // 新剧本还没有对局事件：只换 bundle，进开场前状态
-              if (view.bundle!.id !== handoff?.bundle.id) load({ bundle: view.bundle, events: [], snapshot: null }, `生成：${view.bundle!.title}`)
+            <a className="primary" href="#play" onClick={(ev) => {
+              const nb = view.bundle!
+              const me = nb.characters.find((c) => c.is_player)?.id
+              if (view.jobId?.startsWith('gen-') && me) {
+                // 真生成的本子已挂进本地剧本库：直接开一局
+                ev.preventDefault()
+                void startLive(nb.id, me).then(() => { location.hash = '#play' })
+              } else if (nb.id !== handoff?.bundle.id) {
+                // 模拟生成：只换 bundle，进开场前状态
+                load({ bundle: nb, events: [], snapshot: null }, `生成：${nb.title}`)
+              }
             }}>一键游玩</a>
           </div>
         )}

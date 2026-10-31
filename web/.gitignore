@@ -2,3 +2,4 @@ node_modules/
 dist/
 dist-single/
 src/fixtures/*.recorded.json
+src/fixtures/*.bundle.json

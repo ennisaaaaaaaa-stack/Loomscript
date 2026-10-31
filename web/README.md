@@ -56,6 +56,17 @@ npm run build:single # 单文件 HTML（fixtures 内联）→ dist-single/index.
 
 按人物信息隔离 V3「普通前端只显示当前用户获准的文本与素材」：`GET /bundles/{id}?viewer=<角色>` 只下发该角色自己的 `secret_sheet`，演员包、DM 预生成台词、死亡定义、线索投放元数据都不出服务端；NPC 的已知信息只显示服务端 snapshot 给的，前端不自己推断；reveal 文字只用事件里下发的 `reveal_texts`。
 
+### 没有后端也能开局：浏览器内引擎
+
+`src/engine/` 是 `src/engine.py` + `src/dm.py` 结构性动作 + `src/play_blocks.py` 的 TS 移植，和 server.py 同一套接口（`src/data/backend.ts`）。
+选择规则：带 `?api=` 走后端；带 `?local` 走本地；否则先探 `127.0.0.1:8740/healthz`，连不上就用本地引擎。
+
+- 主持人接话、AI 角色开口（主频道 / 私聊）、复盘自由交流、导入文本生成剧本，都走 claude.ai 页面的 `sample` 能力（需要在 claude.ai 链接里打开并同意调用）。
+- 角色材料按 dm.py 的隔离墙装配：秘密按幕切片、只给当前幕演员包、只给自己私聊窗的历史；主持人全知但私聊只拿摘要。
+- 拿不到模型时降级到半人工档：主持人用 `dm_lines.fallback`，并发 `error` 事件（`dm_degraded` / `agent_unreachable`）。
+- 注意：本地模式下完整 bundle 在浏览器里，F12 能看到所有秘密；信息隔离只对界面和模型材料成立。正式对局走后端。
+- `src/fixtures/*.bundle.json`（带内嵌图片的打包剧本）会覆盖仓库 `bundles/` 的同名本，体积大，不进仓库。
+
 ### 带图的离线回放包
 
 把一局直播录成 `web/src/fixtures/<名字>.recorded.json`（handoff 形状，图片可用 data URI 内嵌，角色可带 `portrait`），

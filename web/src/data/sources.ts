@@ -3,7 +3,7 @@
  *  - 内置 fixtures：b6f1965 真实录制 / v0.1 预演 mock
  *  - ?src=<url>：拉一份 handoff JSON（handoff 升版后直接指过去）
  *  - 拖入/选择本地 handoff JSON
- *  - 直播：见 data/live.ts（server.py 建局 + SSE）
+ *  - 直播：见 data/backend.ts（server.py 或浏览器内引擎）
  */
 // 真实录制直接读仓库里的 demos/frontend_handoff.json，handoff 升版前端自动跟上
 import real from '../../../demos/frontend_handoff.json'

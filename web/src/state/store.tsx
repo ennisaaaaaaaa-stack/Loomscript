@@ -2,12 +2,13 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { mergeEvents, normalizeBundle, normalizeEvent, normalizeHandoff, normalizeSnapshot } from '../contract/normalize'
 import type { Handoff, Snapshot } from '../contract/types'
 import { setAssetBase } from '../contract/lookup'
-import { API_BASE, api, openStream, type ActionResult } from '../data/live'
+import { getBackend, type ActionResult, type Backend } from '../data/backend'
 import { BUILTIN_SOURCES, loadFromUrl } from '../data/sources'
 import { diffSnapshot, frameAt, type Frame } from './frame'
 
 export interface LiveState {
   sid: string
+  backend: Backend
   bundleId: string
   conn: 'connecting' | 'open' | 'error'
   busy: boolean
@@ -73,18 +74,19 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const startLive = useCallback(async (bundleId: string, role: string) => {
     stopLive()
-    setAssetBase(API_BASE)
-    const bundle = normalizeBundle(await api.bundle(bundleId, role))
-    const g = await api.createGame(bundleId)
+    const be = await getBackend()
+    setAssetBase(be.assetBase)
+    const bundle = normalizeBundle(await be.bundle(bundleId, role))
+    const g = await be.createGame(bundleId, { me: role })
     lastSeq.current = -1
     setHandoff({ bundle, events: [], snapshot: normalizeSnapshot(g.snapshot)! })
     setServerSnapshot(normalizeSnapshot(g.snapshot))
-    setSourceLabel(`直播 · ${bundle.title}`)
+    setSourceLabel(`${be.kind === "local" ? "对局" : "直播"} · ${bundle.title}`)
     setLoadError(null)
     setCursor(-1)
     setLiveRole(role)
-    setLive({ sid: g.session_id, bundleId, conn: 'connecting', busy: false, error: null })
-    stopStream.current = openStream(
+    setLive({ sid: g.session_id, backend: be, bundleId, conn: 'connecting', busy: false, error: null })
+    stopStream.current = be.openStream(
       g.session_id,
       () => lastSeq.current,
       (e) => ingest([e]),

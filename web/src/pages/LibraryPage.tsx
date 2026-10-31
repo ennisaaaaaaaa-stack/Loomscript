@@ -4,7 +4,7 @@ import { CoverCard } from '../components/CoverCard'
 import { normalizeBundle } from '../contract/normalize'
 import type { Bundle } from '../contract/types'
 import { setAssetBase } from '../contract/lookup'
-import { API_BASE, api } from '../data/live'
+import { getBackend, type Backend } from '../data/backend'
 import { useStore } from '../state/store'
 
 interface Entry { key: string; bundle: Bundle; backendId?: string }
@@ -18,15 +18,20 @@ export function LibraryPage() {
   const { handoff, startLive, setCursor } = useStore()
   const [remote, setRemote] = useState<Entry[] | null>(null)
   const [offline, setOffline] = useState<string | null>(null)
+  const [be, setBe] = useState<Backend | null>(null)
   const [openKey, setOpenKey] = useState<string | null>(null)
   const [role, setRole] = useState<string>('')
   const [starting, setStarting] = useState(false)
   const [startErr, setStartErr] = useState<string | null>(null)
 
   useEffect(() => {
-    api.bundles()
-      .then((list) => { setAssetBase(API_BASE); return list })
-      .then((list) => Promise.all(list.map(async (s) => ({ key: `api:${s.bundle_id}`, backendId: s.bundle_id, bundle: normalizeBundle(await api.bundle(s.bundle_id)) }))))
+    getBackend()
+      .then(async (b) => {
+        setBe(b)
+        const list = await b.bundles()
+        setAssetBase(b.assetBase)
+        return Promise.all(list.map(async (s) => ({ key: `api:${s.bundle_id}`, backendId: s.bundle_id, bundle: normalizeBundle(await b.bundle(s.bundle_id)) })))
+      })
       .then(setRemote, (e) => setOffline(String(e)))
   }, [])
 
@@ -39,7 +44,8 @@ export function LibraryPage() {
   return (
     <div className="lib">
       <h2>剧本库</h2>
-      {offline && <p className="muted small">现在是离线回放：后端 {API_BASE} 没连上，只显示本地录制里的剧本。开直播局先跑 <code>python src/server.py</code>。</p>}
+      {be && <p className="muted small">{be.kind === 'local' ? '引擎跑在浏览器里，角色和主持人的台词由 Claude 实时生成。连自己的后端：网址加 ?api=<地址>。' : `已连上${be.label}。`}</p>}
+      {offline && <p className="warn small">剧本库加载失败：{offline}。下面只有当前回放数据里的剧本。</p>}
       <div className="lib__grid">
         {entries.map((x) => <CoverCard key={x.key} bundle={x.bundle} onClick={() => { setOpenKey(x.key); setRole(''); setStartErr(null) }} />)}
         <a className="cover cover--new" href="#gen"><span>＋</span><div className="cover__meta"><strong>导入文本生成新剧本</strong></div></a>
