@@ -7,7 +7,7 @@ export function AssetFrame({ bundle, assetId, label, ratio = '16 / 9', onClick }
   bundle: Bundle; assetId?: string; label?: string; ratio?: string; onClick?: () => void
 }) {
   const asset = findAsset(bundle, assetId)
-  const src = asset?.status === 'pending' ? undefined : assetSrc(asset)
+  const src = assetSrc(asset)
   const [failed, setFailed] = useState<string | null>(null)
   const show = src && failed !== src
   return (

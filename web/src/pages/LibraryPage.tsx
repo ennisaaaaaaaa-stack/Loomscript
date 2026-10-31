@@ -3,6 +3,7 @@ import { Avatar } from '../components/Avatar'
 import { CoverCard } from '../components/CoverCard'
 import { normalizeBundle } from '../contract/normalize'
 import type { Bundle } from '../contract/types'
+import { setAssetBase } from '../contract/lookup'
 import { API_BASE, api } from '../data/live'
 import { useStore } from '../state/store'
 
@@ -24,6 +25,7 @@ export function LibraryPage() {
 
   useEffect(() => {
     api.bundles()
+      .then((list) => { setAssetBase(API_BASE); return list })
       .then((list) => Promise.all(list.map(async (s) => ({ key: `api:${s.bundle_id}`, backendId: s.bundle_id, bundle: normalizeBundle(await api.bundle(s.bundle_id)) }))))
       .then(setRemote, (e) => setOffline(String(e)))
   }, [])

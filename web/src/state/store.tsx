@@ -1,7 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { mergeEvents, normalizeBundle, normalizeEvent, normalizeHandoff, normalizeSnapshot } from '../contract/normalize'
 import type { Handoff, Snapshot } from '../contract/types'
-import { api, openStream, type ActionResult } from '../data/live'
+import { setAssetBase } from '../contract/lookup'
+import { API_BASE, api, openStream, type ActionResult } from '../data/live'
 import { BUILTIN_SOURCES, loadFromUrl } from '../data/sources'
 import { diffSnapshot, frameAt, type Frame } from './frame'
 
@@ -72,6 +73,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const startLive = useCallback(async (bundleId: string, role: string) => {
     stopLive()
+    setAssetBase(API_BASE)
     const bundle = normalizeBundle(await api.bundle(bundleId, role))
     const g = await api.createGame(bundleId)
     lastSeq.current = -1

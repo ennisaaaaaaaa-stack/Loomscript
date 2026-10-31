@@ -1,4 +1,4 @@
-import { findCard, findProp } from '../contract/lookup'
+import { cardArt, findCard, findProp, propIcon } from '../contract/lookup'
 import { TIER_LABEL } from '../contract/normalize'
 import type { Bundle, Snapshot } from '../contract/types'
 import type { Frame } from '../state/frame'
@@ -36,20 +36,23 @@ export function FramePanel({ bundle, snap, frame, unread, onOpenDm, fromServer, 
 
       <h4>道具栏</h4>
       <div className="chips">
-        {snap.props_held.length ? snap.props_held.map((id) => <span key={id} className="chip pop">{findProp(bundle, id)?.name ?? id}</span>) : <em>空</em>}
+        {snap.props_held.length ? snap.props_held.map((id) => <span key={id} className="chip pop">{propIcon(bundle, id) && <img className="chip__img" src={propIcon(bundle, id)} alt="" />}{findProp(bundle, id)?.name ?? id}</span>) : <em>空</em>}
       </div>
 
       <h4>已抽卡</h4>
       <div className="chips">
         {snap.cards_drawn.length ? snap.cards_drawn.map((id) => {
           const c = findCard(bundle, id)
-          return <span key={id} className="chip chip--card flip" title={c?.symbol}>{c?.name ?? id}</span>
+          const art = cardArt(bundle, id)
+          return art
+            ? <figure key={id} className="cardart flip" title={c?.symbol}><img src={art} alt={c?.name ?? id} /><figcaption>{c?.name ?? id}</figcaption></figure>
+            : <span key={id} className="chip chip--card flip" title={c?.symbol}>{c?.name ?? id}</span>
         }) : <em>无</em>}
       </div>
 
       <h4>线索 <small>{frame.clues.length}</small></h4>
       {frame.clues.length ? frame.clues.map((c) => (
-        <div key={c.id} className="note pop"><b>{c.title ?? c.id}</b>{c.text && <p>{c.text}</p>}</div>
+        <div key={c.id} className="note pop">{propIcon(bundle, c.id) && <img className="note__img" src={propIcon(bundle, c.id)} alt="" />}<b>{c.title ?? c.id}</b>{c.text && <p>{c.text}</p>}</div>
       )) : <em>暂无</em>}
 
       <h4>DM 手账 <small>{frame.journal.length}</small></h4>

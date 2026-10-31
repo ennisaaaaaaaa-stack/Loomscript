@@ -11,6 +11,7 @@
 - GET  /games/{id}/dm_prompt     DM 全知材料（记忆层挂点）
 - GET  /bundles             剧本列表（前端剧本库）
 - GET  /bundles/{id}        玩家视图 bundle（剥掉演员包/私密本等服务端材料）
+- GET  /assets/...          预生成资产静态托管（bundle.assets[].uri）
 - GET  /healthz
 
 事件流 jsonl 落盘（sessions/{session_id}.jsonl）：服务重启可恢复，
@@ -28,6 +29,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
@@ -136,10 +138,19 @@ def public_bundle(data: dict, viewer: str | None = None) -> dict:
     out["characters"] = [
         c if c.get("id") == viewer else {k: v for k, v in c.items() if k != "secret_sheet"}
         for c in data.get("characters", [])]
+    # 道具上的作者红线/投放对象/投放事件只给服务端
+    out["props"] = [{k: v for k, v in p.items() if k not in ("redline", "visibility", "release_event")}
+                    for p in data.get("props", [])]
     if "clues" in data:
         out["clues"] = [{k: c[k] for k in ("clue_id", "title", "text", "visible_at") if k in c}
                         for c in data["clues"]]
     return out
+
+
+# 预生成资产（bundle.assets[].uri 是相对仓库根的 assets/...）原样静态托管
+ASSETS_DIR = ROOT / "assets"
+if ASSETS_DIR.is_dir():
+    app.mount("/assets", StaticFiles(directory=ASSETS_DIR), name="assets")
 
 
 @app.get("/bundles")
