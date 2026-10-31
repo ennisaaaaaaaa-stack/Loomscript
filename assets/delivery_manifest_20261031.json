@@ -1,0 +1,403 @@
+{
+ "scenes": {
+  "BG01": {
+   "source": "SC01 战后荒原.png",
+   "sha256": "ee3fa80758683f9de2d2ad3ab9f9e8157e08d2aa99f7ba6e0835147f87628c12"
+  },
+  "BG02": {
+   "source": "SC10_福累斯国王议事室_无人空场.png",
+   "sha256": "9619b3349810a579ada1bdd3361be62cb6c847af1ea5c76366f68437fb60dd2d"
+  },
+  "BG03": {
+   "source": "SC04 殷佛纳斯私室.png",
+   "sha256": "ad980d9970afaa26d4b233757ab87ef97532bbe3f340922996343d5fed542b20"
+  },
+  "BG04": {
+   "source": "SC06 匕首幻象回廊.png",
+   "sha256": "a1d97c859a4bfbc61bc05c3aed8d206f72995e9d9c5100e3a86af08a3d271f11"
+  },
+  "BG05": {
+   "source": "SC12_福累斯宴会厅_无人空场.png",
+   "sha256": "80f19b7c73a0b32bff2541f6f5c8f0b674e5f2976fe1958b9f0dbad6e84df48c"
+  },
+  "BG06": {
+   "source": "SC13_女巫石洞_无人空场.png",
+   "sha256": "5f3dce161725f7387ad7eea406d5b268581e4bc818c279200b2fba4f5b125fd9"
+  },
+  "BG07": {
+   "source": "SC14_费辅家宅_无人空场.png",
+   "sha256": "c61d40ca95f89a77aec0214c23d2c0185525b04242363e99077a46d396779d89"
+  },
+  "BG08": {
+   "source": "SC15_英格兰王宫外廊_无人空场.png",
+   "sha256": "fc41b32091e7ed36fc38a718f8e1464d44a0e0f606f0c74d69afd0d900a21aae"
+  },
+  "BG09": {
+   "source": "SC16_邓西嫩值夜前室_无人空场.png",
+   "sha256": "17a3e1481c823157a070dbba79adaff4c41613f29ec808fe5bddef469b7a6201"
+  },
+  "BG10": {
+   "source": "SC19_邓西嫩战场_无人空场.png",
+   "sha256": "46ce69f28356a1c4bacea018e14e3ddfee358e0d3e807dd1245ba552641dcf55"
+  },
+  "BG11": {
+   "source": "SC11_苑囿伏击小径_无人空场.png",
+   "sha256": "7b38c8a1a52cf65a1488f04b0a0bc1630e4ef8f322b398a57523ae2c752fcbc9"
+  }
+ },
+ "spare": {
+  "SC02": {
+   "source": "SC02 军营战报处.png",
+   "sha256": "7c679cc07a1cd573ed40460310ce2e8de04775182f2a2ceec4935a4920db2da9"
+  },
+  "SC03": {
+   "source": "SC03 福累斯立储厅.png",
+   "sha256": "5aefb7d0a0d35fabb5a7b2d95abb9816d7d8a5559d570ba270ca23e4f3d85ac8"
+  },
+  "SC05": {
+   "source": "SC05 城堡来访门庭.png",
+   "sha256": "fd7e8b26e0ed4cbc9f22c2837979c61db331cce3fd7292137c958ebda49e060b"
+  },
+  "SC07": {
+   "source": "SC07 弑王后内室.png",
+   "sha256": "5c89ca349c9cd0c0722c987099596ec753f3e76cb3381e73726973d9271f2d77"
+  },
+  "SC08": {
+   "source": "SC08 南门门房.png",
+   "sha256": "04611c12c01281c007ee77957946defbcc4442d10f813d6d4071b8bb9883717d"
+  },
+  "SC09": {
+   "source": "SC09_城堡外异象晨景_无人空场.png",
+   "sha256": "04a97f9b0fe864059bcbef3b09787bd49049bdbfd5271a246dc446e9c41a1452"
+  },
+  "SC17": {
+   "source": "SC17_邓西嫩备战室_无人空场.png",
+   "sha256": "762b7e4616e46547c549615b2f609c11d5c10368f59090e79286e8b5cb96d5b1"
+  },
+  "SC18": {
+   "source": "SC18_勃南林边_无人空场.png",
+   "sha256": "951477b3164191bf83d394fc8b071daa4ef6fdbfe63ff0c276cc35457eb28f17"
+  },
+  "SC20": {
+   "source": "SC20_战后拥立平原_无人空场.png",
+   "sha256": "bbe7294c2dbc518031690363867aa7c4ecbb8b138a0e0dcd0489bae7221cf67b"
+  },
+  "SC21": {
+   "source": "SC21_发现前的晨间回廊_无人空场.png",
+   "sha256": "9570eb6d9f95ba09a6e21b289a6bf74bbb39a0b2db972fa4e1a66d4c25285a3e"
+  },
+  "SC22": {
+   "source": "SC22_私室夜间劝说_无人空场.png",
+   "sha256": "3ecb16de3265d76114e7a14b4243caba2a7616111766436472890a1fb51b301e"
+  }
+ },
+ "portraits": {
+  "macbeth": {
+   "ch": "CH01",
+   "name": "麦克白",
+   "costume": "麦克白 _ 军装",
+   "sha256": "eb7910e068f162a1f43b81dcc1d9fb87378b1cdd309b4dc348baba005a1d013f"
+  },
+  "lady_macbeth": {
+   "ch": "CH02",
+   "name": "麦克白夫人",
+   "costume": "麦克白夫人 _ 主妇常服",
+   "sha256": "772eb0b0b15168fabec746c7c7e5bc6e1f94ca1b2a23e6bb7c88ea872c1e8249"
+  },
+  "banquo": {
+   "ch": "CH03",
+   "name": "班柯",
+   "costume": "班柯 _ 将军常装",
+   "sha256": "ca964a873bdd89fbdaa6a7cac57c8141527f4528d2152e2420745197cf20bf4b"
+  },
+  "macduff": {
+   "ch": "CH04",
+   "name": "麦克德夫",
+   "costume": "麦克德夫 _ 贵族常服",
+   "sha256": "928cc07fdfba77fbe18b9c2320646f8e88a73d0439957826267068ac43fedcf4"
+  },
+  "malcolm": {
+   "ch": "CH05",
+   "name": "马尔康",
+   "costume": "马尔康 _ 王子礼服",
+   "sha256": "8447587b756b70d87c85c862a4195600b938b067596925ae633e07c5991aff2f"
+  },
+  "ross": {
+   "ch": "CH06",
+   "name": "洛斯",
+   "costume": "洛斯 _ 旅途常服",
+   "sha256": "e2aa11797fd9076463aa7cba6e65e50bb72837de7ac99a9ca6bb81ae0ad33526"
+  },
+  "duncan": {
+   "ch": "CH07",
+   "name": "邓肯",
+   "costume": "邓肯 _ 国王来访服",
+   "sha256": "11b5df555fe7eeb3808d292c70c182f13f5755b1b3f0c81b318bc8098add3652"
+  },
+  "fleance": {
+   "ch": "CH08",
+   "name": "弗里恩斯",
+   "costume": "弗里恩斯 _ 夜行常服",
+   "sha256": "efca6d9c4d1c48c55bbd6ab27d52d1628d6155618c1607c05845d598346a1a81"
+  },
+  "witch_1": {
+   "ch": "CH09",
+   "name": "女巫甲",
+   "costume": "女巫甲 _ 荒原巫衣",
+   "sha256": "58d1b2b3fc7eda0c8cefd865dc4a8f1c91d6d3665fb39e76b8fe695cb20970a8"
+  },
+  "witch_2": {
+   "ch": "CH10",
+   "name": "女巫乙",
+   "costume": "女巫乙 _ 荒原巫衣",
+   "sha256": "2c19d5ae9cd0e63cd5cc8a7a04aea6d28ffe31a3e461a8f9baeb21c58aa5b8ee"
+  },
+  "witch_3": {
+   "ch": "CH11",
+   "name": "女巫丙",
+   "costume": "女巫丙 _ 荒原巫衣",
+   "sha256": "3e6ec43e27e87850216cb67ca8755e63380f3dbbc62b5378a6139bc8c7dd160c"
+  }
+ },
+ "npc": {
+  "CH12": {
+   "name": "道纳本",
+   "costume": "道纳本 _ 次子常服"
+  },
+  "CH13": {
+   "name": "列诺克斯",
+   "costume": "列诺克斯 _ 贵族常服"
+  },
+  "CH14": {
+   "name": "孟提斯",
+   "costume": "孟提斯 _ 集结军服"
+  },
+  "CH15": {
+   "name": "安格斯",
+   "costume": "安格斯 _ 贵族行旅服"
+  },
+  "CH16": {
+   "name": "凯士纳斯",
+   "costume": "凯士纳斯_集结军服_正面白底"
+  },
+  "CH17": {
+   "name": "西华德",
+   "costume": "西华德_英军统帅服_正面白底"
+  },
+  "CH18": {
+   "name": "小西华德",
+   "costume": "小西华德_英军青年军服_正面白底"
+  },
+  "CH19": {
+   "name": "西登",
+   "costume": "西登_侍臣常服_正面白底"
+  },
+  "CH20": {
+   "name": "麦克德夫幼子",
+   "costume": "麦克德夫幼子_家居童服_正面白底"
+  },
+  "CH21": {
+   "name": "军曹",
+   "costume": "军曹_战报负伤服_正面白底"
+  },
+  "CH22": {
+   "name": "门房",
+   "costume": "门房_门房常服_正面白底"
+  },
+  "CH23": {
+   "name": "老翁",
+   "costume": "老翁_乡人常服_正面白底"
+  },
+  "CH24": {
+   "name": "麦克德夫夫人",
+   "costume": "麦克德夫夫人_家宅常服_正面白底"
+  },
+  "CH25": {
+   "name": "侍女",
+   "costume": "侍女_值夜侍女服_正面白底"
+  },
+  "CH26": {
+   "name": "赫卡忒",
+   "costume": "赫卡忒_众巫首领服_正面白底"
+  },
+  "CH27": {
+   "name": "英格兰医生",
+   "costume": "英格兰医生_英格兰医者服_正面白底"
+  },
+  "CH28": {
+   "name": "苏格兰医生",
+   "costume": "苏格兰医生_苏格兰医者服_正面白底"
+  },
+  "CH29": {
+   "name": "刺客甲",
+   "costume": "刺客甲_刺客便服_正面白底"
+  },
+  "CH30": {
+   "name": "刺客乙",
+   "costume": "刺客乙_刺客便服_正面白底"
+  },
+  "CH31": {
+   "name": "刺客丙",
+   "costume": "刺客丙_刺客便服_正面白底"
+  },
+  "CH32": {
+   "name": "军士模板",
+   "costume": "军士模板_普通军服_正面白底"
+  },
+  "CH33": {
+   "name": "使者模板",
+   "costume": "使者模板_行旅使者服_正面白底"
+  },
+  "CH34": {
+   "name": "宫廷侍从模板",
+   "costume": "宫廷侍从模板_宫廷常服_正面白底"
+  }
+ },
+ "props": {
+  "CARD01": {
+   "sha256": "63b4cbe23ee92551e41a8cac925298c273082dcc71ec59c8561a5b6b9bde6063"
+  },
+  "CARD02": {
+   "sha256": "4c59f2693467ccb7f1338752b5bc0e8a98315f80668b854a793503ffa2fb765b"
+  },
+  "CARD03": {
+   "sha256": "6889a7e2baea1fdd56dcd4b2eb7bb33d7cdda189a72816095df4782cb7ab3d90"
+  },
+  "ICON_CL01": {
+   "sha256": "34e9a5ad6b8f073c3a6b9223c6cacd7708657774b51c05d38dc809950c17738e"
+  },
+  "ICON_CL02": {
+   "sha256": "856f42f1d3fba61fb4443c980577600b2d4df41d6ed8836492e1a648ea48f305"
+  },
+  "ICON_CL03": {
+   "sha256": "acf9f7d6cd71b4ded2e5404debdc7fd1e61b958f8d2c7162f4789f8ae2d8869d"
+  },
+  "ICON_CL04": {
+   "sha256": "1367b6fcfaeebc43d0fb11163ad534ae28d01dc5f38c27cff80b2de52e94f39b"
+  },
+  "ICON_CL05": {
+   "sha256": "5f1a02aa7eb4001eea16d5665989314c9d70cfe9a62cae4c195e87ee59f6c78b"
+  },
+  "ICON_CL06": {
+   "sha256": "aa21fe713cd9a24fff6be6ff1bc4fecec3707705497a7276933f016989935765"
+  },
+  "ICON_CL07": {
+   "sha256": "8a910a19e86d75d79c6114b1b68ad5f48f3441ffc73b0f6b683046e0c038a8cc"
+  },
+  "ICON_CL08": {
+   "sha256": "aa196388d075a09311a83dd4c363bb540df1bc0075bb42790f5b03380eb1671a"
+  },
+  "ICON_CL09": {
+   "sha256": "83b80822da516b5f3de03a3b9eaed648f3c4cf0dfa53f016929e77e173722bb1"
+  },
+  "ICON_CL10": {
+   "sha256": "a2a9d54788a05f7a8ae459cd113ecce6e69600491ce41aaaec655525dc101830"
+  },
+  "PROP01": {
+   "sha256": "74e54779c3204fb13aca08777c63d16ed449a931b3039c5f1c49615d3774f934"
+  }
+ },
+ "clue_cards": {
+  "线索卡_黑红版II": [
+   "CL01",
+   "CL02",
+   "CL03",
+   "CL04",
+   "CL05",
+   "CL06",
+   "CL07",
+   "CL08",
+   "CL09",
+   "CL10",
+   "CL11",
+   "CL12",
+   "CL13",
+   "CL14",
+   "CL15",
+   "CL16",
+   "CL17",
+   "CL18",
+   "CL19",
+   "CL20",
+   "CL21",
+   "CL22",
+   "CL23",
+   "CL24",
+   "CL25",
+   "CL26",
+   "CL27",
+   "CL28",
+   "CL29",
+   "CL30",
+   "CL31",
+   "CL32",
+   "CL33",
+   "CL34",
+   "CL35",
+   "CL36",
+   "CL37",
+   "CL38",
+   "CL39",
+   "CL40",
+   "CL41",
+   "CL42",
+   "CL43",
+   "CL44"
+  ],
+  "线索卡_森严版": [
+   "CL01",
+   "CL02",
+   "CL03",
+   "CL04",
+   "CL05",
+   "CL06",
+   "CL07",
+   "CL08",
+   "CL09",
+   "CL10",
+   "CL11",
+   "CL12",
+   "CL13",
+   "CL14",
+   "CL15",
+   "CL16",
+   "CL17",
+   "CL18",
+   "CL19",
+   "CL20",
+   "CL21",
+   "CL22",
+   "CL23",
+   "CL24",
+   "CL25",
+   "CL26",
+   "CL27",
+   "CL28",
+   "CL29",
+   "CL30",
+   "CL31",
+   "CL32",
+   "CL33",
+   "CL34",
+   "CL35",
+   "CL36",
+   "CL37",
+   "CL38",
+   "CL39",
+   "CL40",
+   "CL41",
+   "CL42",
+   "CL43",
+   "CL44"
+  ]
+ },
+ "pending_contract": {
+  "note": "portraits(11+23npc) 与 PROP01 已落盘但未注册 bundle.assets——合同 enum 无 portrait/prop_image kind，需与前端对齐后再扩",
+  "files_on_disk": [
+   "assets/portraits/",
+   "assets/portraits/npc/",
+   "assets/props/PROP01.png"
+  ],
+  "proposal": "bundle.schema.json assets.kind 增加 portrait；characters 增加 portrait_id 字段（可选）"
+ }
+}

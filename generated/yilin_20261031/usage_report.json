@@ -1,0 +1,54 @@
+{
+ "date": "2026-10-31",
+ "game_test": {
+  "bundle": "macbeth_full 6玩家自玩",
+  "llm_calls": 10,
+  "all_ok": true,
+  "latency_s": [
+   2.3,
+   3.0,
+   3.0,
+   5.2,
+   6.6,
+   6.7,
+   7.4,
+   7.7,
+   7.9,
+   7.9,
+   8.0,
+   8.0,
+   12.2
+  ],
+  "avg_latency_s": 6.9,
+  "max_latency_s": 12.2
+ },
+ "token_per_dm_reply": {
+  "prompt_avg": 21757,
+  "completion_avg": 121,
+  "driver": "full_script 全知材料 57.7k chars (actor_turns 占 71%)",
+  "per_game_note": "10次DM接话≈21.8万prompt tokens/完整对局"
+ },
+ "pipeline_test": {
+  "source": "竹林中(芥川,公版) LLM重述 2207字",
+  "stages_real_llm": "build_acts+gen_characters(5)+gen_actor_turns(4)+cg+props = 13 calls",
+  "tokens": {
+   "prompt": 14696,
+   "completion": 12773,
+   "total": 27469
+  },
+  "wall_sequential_s": 456,
+  "est_wall_2workers_s": 274,
+  "resume_verified": "中途失败重拉, 8 done tasks 跳过, 只补 2 calls 17s 收尾",
+  "output": "bundles/yilin.json 可玩: 4幕5角色+clues+cards+endgame, Bundle.load 合同校验过"
+ },
+ "async_runtime_test": {
+  "yilin_game": "3供词人轮流发言+搜证+线索+4幕推到底",
+  "dm_latency_s": [
+   2.6,
+   6.5,
+   7.3
+  ],
+  "ending": "END02 悬案",
+  "note": "生成产物零改动直接进引擎开玩——'实时异步生成的玩法'后端侧打通"
+ }
+}

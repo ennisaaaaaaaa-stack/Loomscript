@@ -129,7 +129,7 @@ def llm_chat(system: str, user: str) -> str:
                  "Authorization": f"Bearer {LLM_API_KEY}"})
     with urllib.request.urlopen(req, timeout=LLM_TIMEOUT) as resp:
         data = json.load(resp)
-    return data["choices"][0]["message"]["content"]
+    return data["choices"][0]["message"]["content"], data.get("usage")
 
 
 def build_messages(body: dict):
@@ -182,6 +182,7 @@ def agent(body: AgentRequest):
                 "detail": f"今日 {_budget_state['count']}/{DAILY_CALLS} 次已用完（PIANIST_DAILY_CALLS）"}
 
     t0 = time.time()
+    usage = None
     try:
         if STUB:
             time.sleep(0.05)  # 模拟一点延迟，前端 loading 态可见
@@ -198,10 +199,11 @@ def agent(body: AgentRequest):
                         "detail": "PIANIST_LLM_BASE_URL / PIANIST_LLM_API_KEY 未配置"
                                   "（或设 PIANIST_STUB=1 走确定性档）"}
             system, user = build_messages(raw)
-            line = llm_chat(system, user)
+            line, usage = llm_chat(system, user)
             ok, status = True, "llm"
         _settle_budget(kind, ok, status,
-                       latency_ms=int((time.time() - t0) * 1000))
+                       latency_ms=int((time.time() - t0) * 1000),
+                       **({"usage": usage} if usage else {}))
         return {"ok": True, "line": line}
     except Exception as e:  # 尾巴截取：验尸材料随账落盘
         tail = f"{type(e).__name__}: {e}"[:200]

@@ -1,0 +1,128 @@
+{
+ "parse_input": {
+  "task_id": "parse_input",
+  "stage": "parse_input",
+  "input_hash": "518e859cd11eb75b",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/parse_input.json",
+  "attempts": 1,
+  "updated_at": "2026-10-31T11:41:51"
+ },
+ "build_acts": {
+  "task_id": "build_acts",
+  "stage": "build_acts",
+  "input_hash": "dc2d84eb7b78ccb8",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/build_acts.json",
+  "attempts": 1,
+  "updated_at": "2026-10-31T11:43:09"
+ },
+ "gen_characters:tajuumaru": {
+  "task_id": "gen_characters:tajuumaru",
+  "stage": "gen_characters",
+  "input_hash": "e1ca563d8a13cc14",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/gen_characters:tajuumaru.json",
+  "attempts": 1,
+  "updated_at": "2026-10-31T11:43:44"
+ },
+ "gen_characters:woman": {
+  "task_id": "gen_characters:woman",
+  "stage": "gen_characters",
+  "input_hash": "3abf9d6efd43c8b6",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/gen_characters:woman.json",
+  "attempts": 1,
+  "updated_at": "2026-10-31T11:43:38"
+ },
+ "gen_characters:samurai": {
+  "task_id": "gen_characters:samurai",
+  "stage": "gen_characters",
+  "input_hash": "9ef34192a4867b89",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/gen_characters:samurai.json",
+  "attempts": 1,
+  "updated_at": "2026-10-31T11:44:22"
+ },
+ "gen_characters:masago": {
+  "task_id": "gen_characters:masago",
+  "stage": "gen_characters",
+  "input_hash": "a12dcfb8c510c09d",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/gen_characters:masago.json",
+  "attempts": 1,
+  "updated_at": "2026-10-31T11:44:16"
+ },
+ "gen_characters:woodcutter": {
+  "task_id": "gen_characters:woodcutter",
+  "stage": "gen_characters",
+  "input_hash": "a44d714e38902bb9",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/gen_characters:woodcutter.json",
+  "attempts": 1,
+  "updated_at": "2026-10-31T11:44:43"
+ },
+ "gen_actor_turns:A1": {
+  "task_id": "gen_actor_turns:A1",
+  "stage": "gen_actor_turns_per_act",
+  "input_hash": "dea46e5b7e8946f1",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/gen_actor_turns:A1.json",
+  "attempts": 1,
+  "updated_at": "2026-10-31T11:45:08"
+ },
+ "gen_actor_turns:A2": {
+  "task_id": "gen_actor_turns:A2",
+  "stage": "gen_actor_turns_per_act",
+  "input_hash": "ee3bbd834ee11f31",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/gen_actor_turns:A2.json",
+  "attempts": 1,
+  "updated_at": "2026-10-31T11:44:46"
+ },
+ "gen_actor_turns:A3": {
+  "task_id": "gen_actor_turns:A3",
+  "stage": "gen_actor_turns_per_act",
+  "input_hash": "aae1c68333cced53",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/gen_actor_turns:A3.json",
+  "attempts": 1,
+  "updated_at": "2026-10-31T11:44:57"
+ },
+ "gen_actor_turns:A4": {
+  "task_id": "gen_actor_turns:A4",
+  "stage": "gen_actor_turns_per_act",
+  "input_hash": "d0c370a82831d663",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/gen_actor_turns:A4.json",
+  "attempts": 1,
+  "updated_at": "2026-10-31T11:45:02"
+ },
+ "gen_cg_list": {
+  "task_id": "gen_cg_list",
+  "stage": "gen_cg_list",
+  "input_hash": "7beb7a94776939e7",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/gen_cg_list.json",
+  "attempts": 2,
+  "updated_at": "2026-10-31T11:45:52"
+ },
+ "gen_props_journal": {
+  "task_id": "gen_props_journal",
+  "stage": "gen_props_journal",
+  "input_hash": "7beb7a94776939e7",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/gen_props_journal.json",
+  "attempts": 2,
+  "updated_at": "2026-10-31T11:45:45"
+ },
+ "validate_bundle": {
+  "task_id": "validate_bundle",
+  "stage": "validate_bundle",
+  "input_hash": "03c27dcc78f3a21b",
+  "status": "done",
+  "output_ref": "/tmp/yilin_pipeline_run/outputs/validate_bundle.json",
+  "attempts": 1,
+  "updated_at": "2026-10-31T11:45:52"
+ }
+}
