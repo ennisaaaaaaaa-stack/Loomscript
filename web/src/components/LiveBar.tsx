@@ -31,7 +31,7 @@ export function LiveBar({ frame }: { frame: Frame }) {
         <button className="ghost" disabled={dis} onClick={() => act((sid) => api.dm(sid, 'deal_cards', { character_id: myRole }))}>发行动卡</button>
       )}
       {ended && !reviewed && <button className="primary" disabled={dis} onClick={() => act((sid) => api.dm(sid, 'review'))}>DM 复盘</button>}
-      {ended && reviewed && <a className="primary" href="#/review">看复盘 →</a>}
+      {ended && reviewed && <a className="primary" href="#review">看复盘 →</a>}
       <span className="grow" />
       {live.error && <span className="warn small">{live.error}</span>}
       <code title={live.sid}>{live.sid.slice(0, 8)}</code>

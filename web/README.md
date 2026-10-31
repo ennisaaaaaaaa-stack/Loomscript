@@ -15,10 +15,10 @@ npm run build:single # 单文件 HTML（fixtures 内联）→ dist-single/index.
 
 | 路由 | 页面 | 状态 |
 |---|---|---|
-| `#/play` | P0 对局页：事件时间线 / 场景舞台 / 主聊天流 / 当前帧 / 私聊窗 / 回放控制 | event.schema 15 种事件全接 |
-| `#/gen` | P0 生成页：粘贴文本 → 进度流 → bundle 预览 → 一键游玩 | 按 gen.schema 聚合；无后端时本地模拟 |
-| `#/library` | P1 剧本库：封面网格 + 详情 + 进本 | 列表接口未定，现在只有 handoff 里那一本 |
-| `#/review` | P1 复盘页：DM 复盘词 + 快照对照 + 自由交流 | 自由交流只在本地回显 |
+| `#play` | P0 对局页：事件时间线 / 场景舞台 / 主聊天流 / 当前帧 / 私聊窗 / 回放控制 | event.schema 15 种事件全接 |
+| `#gen` | P0 生成页：粘贴文本 → 进度流 → bundle 预览 → 一键游玩 | 按 gen.schema 聚合；无后端时本地模拟 |
+| `#library` | P1 剧本库：封面网格 + 详情 + 进本 | 列表接口未定，现在只有 handoff 里那一本 |
+| `#review` | P1 复盘页：DM 复盘词 + 快照对照 + 自由交流 | 自由交流只在本地回显 |
 
 复用组件：`ChatWindow`（主聊天/私聊/复盘/发现）、`CoverCard`、`Timeline`（事件流/生成进度）、`AssetFrame`（场景/CG/道具图，没图出占位框并标 asset id）。
 
@@ -55,3 +55,9 @@ npm run build:single # 单文件 HTML（fixtures 内联）→ dist-single/index.
 ## 信息隔离
 
 按人物信息隔离 V3「普通前端只显示当前用户获准的文本与素材」：`GET /bundles/{id}?viewer=<角色>` 只下发该角色自己的 `secret_sheet`，演员包、DM 预生成台词、死亡定义、线索投放元数据都不出服务端；NPC 的已知信息只显示服务端 snapshot 给的，前端不自己推断；reveal 文字只用事件里下发的 `reveal_texts`。
+
+### 带图的离线回放包
+
+把一局直播录成 `web/src/fixtures/<名字>.recorded.json`（handoff 形状，图片可用 data URI 内嵌，角色可带 `portrait`），
+数据源下拉里会自动出现在第一位；`npm run build:single` 打出的单文件可直接发给别人点开。
+这类文件体积大，已在 `.gitignore` 里排除。路由用扁平 hash（`#play`），旧的 `#/play` 也认。

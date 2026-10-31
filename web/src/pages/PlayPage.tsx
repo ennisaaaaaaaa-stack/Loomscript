@@ -88,12 +88,12 @@ export function PlayPage() {
               {scene ? <p>{scene.text}</p> : act && <p>{act.world_info}</p>}
             </div>
             {frame.phase === 'ended' && cursor === maxSeq && !frame.ending && (
-              <a className="stage__end" href="#/review">终局 · 查看复盘 →</a>
+              <a className="stage__end" href="#review">终局 · 查看复盘 →</a>
             )}
           </div>
           <Theater events={handoff.events} cursor={cursor} bundle={b} onReview={() => {
             if (live && frame.reviewText === null) void runAction((sid) => api.dm(sid, 'review'))
-            location.hash = '#/review'
+            location.hash = '#review'
           }} />
           {showError && (
             <div className="errbar" role="alert">

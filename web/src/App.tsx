@@ -7,16 +7,18 @@ import { ReviewPage } from './pages/ReviewPage'
 import { useStore } from './state/store'
 
 const ROUTES = [
-  { path: '#/gen', label: '生成', el: <GenPage /> },
-  { path: '#/library', label: '剧本库', el: <LibraryPage /> },
-  { path: '#/play', label: '对局', el: <PlayPage /> },
-  { path: '#/review', label: '复盘', el: <ReviewPage /> },
+  { path: '#gen', label: '生成', el: <GenPage /> },
+  { path: '#library', label: '剧本库', el: <LibraryPage /> },
+  { path: '#play', label: '对局', el: <PlayPage /> },
+  { path: '#review', label: '复盘', el: <ReviewPage /> },
 ]
 
 function useHash() {
-  const [h, setH] = useState(location.hash || '#/library')
+  // 路由用 #play 这种扁平 hash（claude.ai 链接只透传扁平 hash），旧的 #/play 也认
+  const read = () => '#' + (location.hash.replace(/^#\/?/, '') || 'library')
+  const [h, setH] = useState(read)
   useEffect(() => {
-    const on = () => setH(location.hash || '#/library')
+    const on = () => setH(read())
     addEventListener('hashchange', on)
     return () => removeEventListener('hashchange', on)
   }, [])
@@ -31,7 +33,7 @@ export function App() {
   return (
     <div className="app">
       <nav className="nav">
-        <a className="brand" href="#/library">LoomScript</a>
+        <a className="brand" href="#library">LoomScript</a>
         {ROUTES.map((r) => <a key={r.path} href={r.path} className={r === route ? 'on' : ''}>{r.label}</a>)}
         <span className="grow" />
         <label className="src">

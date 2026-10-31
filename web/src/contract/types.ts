@@ -15,6 +15,8 @@ export interface Character extends Extra {
   public_sheet: string
   /** 只给本人看。NPC 的 secret_sheet 不进玩家界面（见人物信息隔离 V3）。 */
   secret_sheet?: string
+  /** 立绘（URL 或 data URI），可省；前端兼容字段 */
+  portrait?: string
   voice?: string
 }
 

@@ -62,7 +62,7 @@ export function GenPage() {
           <div className="gen__preview">
             <h4>bundle 预览</h4>
             <CoverCard bundle={view.bundle} compact />
-            <a className="primary" href="#/play" onClick={() => {
+            <a className="primary" href="#play" onClick={() => {
               // 新剧本还没有对局事件：只换 bundle，进开场前状态
               if (view.bundle!.id !== handoff?.bundle.id) load({ bundle: view.bundle, events: [], snapshot: null }, `生成：${view.bundle!.title}`)
             }}>一键游玩</a>

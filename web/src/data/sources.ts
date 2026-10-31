@@ -11,7 +11,14 @@ import mock from '../fixtures/handoff_v01_mock.json'
 
 export interface SourceDef { id: string; label: string; note: string; load: () => Promise<unknown> }
 
+// 本地录制（*.recorded.json，图片内嵌、体积大，不进仓库）：有就排第一个
+const recorded: SourceDef[] = Object.entries(import.meta.glob<unknown>('../fixtures/*.recorded.json', { import: 'default' })).map(([path, load]) => {
+  const id = path.split('/').pop()!.replace('.recorded.json', '')
+  return { id, label: `${id} 全本直播录制`, note: '本地 server.py 真实开局录制，资产内嵌', load }
+})
+
 export const BUILTIN_SOURCES: SourceDef[] = [
+  ...recorded,
   { id: 'b6f1965', label: 'b6f1965 真实录制', note: '麦克白真实对局，冻结版', load: async () => real },
   { id: 'v01-mock', label: 'v0.1 预演（mock）', note: '真实录制 + 手工插入 channel/error/clue/journal/reveal_texts/assets，验证壳不返工', load: async () => mock },
 ]

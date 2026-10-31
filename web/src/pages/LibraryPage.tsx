@@ -15,7 +15,7 @@ interface Entry { key: string; bundle: Bundle; backendId?: string }
  * 后端不在时只有当前 handoff 里那本，进本=回放。
  */
 export function LibraryPage() {
-  const { handoff, startLive } = useStore()
+  const { handoff, startLive, setCursor } = useStore()
   const [remote, setRemote] = useState<Entry[] | null>(null)
   const [offline, setOffline] = useState<string | null>(null)
   const [openKey, setOpenKey] = useState<string | null>(null)
@@ -39,10 +39,10 @@ export function LibraryPage() {
   return (
     <div className="lib">
       <h2>剧本库</h2>
-      {offline && <p className="muted small">后端 {API_BASE} 没连上，只显示本地 handoff 里的剧本。开直播局先跑 <code>python src/server.py</code>。</p>}
+      {offline && <p className="muted small">现在是离线回放：后端 {API_BASE} 没连上，只显示本地录制里的剧本。开直播局先跑 <code>python src/server.py</code>。</p>}
       <div className="lib__grid">
         {entries.map((x) => <CoverCard key={x.key} bundle={x.bundle} onClick={() => { setOpenKey(x.key); setRole(''); setStartErr(null) }} />)}
-        <a className="cover cover--new" href="#/gen"><span>＋</span><div className="cover__meta"><strong>导入文本生成新剧本</strong></div></a>
+        <a className="cover cover--new" href="#gen"><span>＋</span><div className="cover__meta"><strong>导入文本生成新剧本</strong></div></a>
       </div>
 
       {open && (
@@ -67,13 +67,13 @@ export function LibraryPage() {
                     onClick={() => {
                       setStarting(true)
                       startLive(open.backendId!, chosen!)
-                        .then(() => { location.hash = '#/play' }, (e) => setStartErr(String(e)))
+                        .then(() => { location.hash = '#play' }, (e) => setStartErr(String(e)))
                         .finally(() => setStarting(false))
                     }}
                   >{starting ? '开局中…' : '进本（开新局）'}</button>
                   {startErr && <p className="warn small">{startErr}</p>}
                 </>
-              ) : <a className="primary" href="#/play">进本（回放录制）</a>}
+              ) : <a className="primary" href="#play" onClick={() => setCursor(handoff.events[0]?.seq ?? -1)}>进本（从头回放录制）</a>}
             </div>
             <button className="ghost" onClick={() => setOpenKey(null)}>×</button>
           </header>
