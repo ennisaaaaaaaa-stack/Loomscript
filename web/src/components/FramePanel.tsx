@@ -20,13 +20,13 @@ export function FramePanel({ bundle, snap, frame, unread, onOpenDm, fromServer }
           const st = snap.character_states[c.id]
           const n = unread[c.id] ?? 0
           return (
-            <li key={c.id} className={st?.on_stage === false ? 'off' : ''}>
+            <li key={c.id} className={st?.on_stage === false || st?.alive === false ? 'off' : ''}>
               <button className="roster__btn" onClick={() => onOpenDm(c.id)} disabled={c.is_player} title={c.is_player ? '你' : `私聊 ${c.name}`}>
                 <Avatar c={c} size={32} />
                 {n > 0 && <span className="badge">{n}</span>}
               </button>
               <div>
-                <div>{c.name}{c.is_player && <span className="tag">你</span>}</div>
+                <div>{c.name}{c.is_player && <span className="tag">你</span>}{st?.alive === false && <span className="tag tag--dim">已死·观演</span>}</div>
                 <small>台词 {st?.lines_spoken ?? 0} · 已知 {st?.knowledge_unlocked.length ?? 0}</small>
               </div>
             </li>
@@ -49,7 +49,7 @@ export function FramePanel({ bundle, snap, frame, unread, onOpenDm, fromServer }
 
       <h4>线索 <small>{frame.clues.length}</small></h4>
       {frame.clues.length ? frame.clues.map((c) => (
-        <div key={c.id} className="note pop"><b>{c.id}</b>{c.text && <p>{c.text}</p>}</div>
+        <div key={c.id} className="note pop"><b>{c.title ?? c.id}</b>{c.text && <p>{c.text}</p>}</div>
       )) : <em>暂无</em>}
 
       <h4>DM 手账 <small>{frame.journal.length}</small></h4>

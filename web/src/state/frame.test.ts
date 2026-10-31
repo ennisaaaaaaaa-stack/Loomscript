@@ -57,6 +57,29 @@ describe('v0.1 预演数据（mock）', () => {
   })
 })
 
+describe('v0.2 合同：death / ending / clues 表', () => {
+  const { handoff } = normalizeHandoff(raw)
+  const b = { ...handoff.bundle, clues: [{ clue_id: 'c1', title: '刀柄', text: '纹章不对', visible_at: 'A1' }] }
+  const base = { session_id: 's', ts: '' }
+  const evs = [
+    { ...base, seq: 0, type: 'game_start' },
+    { ...base, seq: 1, type: 'clue_found', clue_id: 'c1' },
+    { ...base, seq: 2, type: 'death', death_id: 'd1', character_id: 'banquo', text: '班柯倒在路上' },
+    { ...base, seq: 3, type: 'game_end', ending_id: 'end_fall', ending_title: '森林移动', ending_text: '……' },
+  ] as never
+  const f = frameAt(evs, Infinity, b)
+  it('clue_found 只带 id 时从 bundle.clues 查标题正文', () => {
+    expect(f.clues[0]).toMatchObject({ title: '刀柄', text: '纹章不对' })
+  })
+  it('death 翻 alive=false', () => {
+    expect(f.snapshot.character_states.banquo.alive).toBe(false)
+  })
+  it('game_end 带结局，并按结局表解锁 CG', () => {
+    expect(f.ending).toMatchObject({ id: 'end_fall', title: '森林移动' })
+    expect(f.snapshot.cg_unlocked).toEqual(['cg_birnam'])
+  })
+})
+
 describe('工具函数', () => {
   it('parseChannel', () => {
     expect(parseChannel(undefined)).toEqual({ kind: 'main' })

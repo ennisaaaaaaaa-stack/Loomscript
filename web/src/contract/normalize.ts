@@ -3,7 +3,7 @@ import type { Bundle, GameEvent, Handoff, KnownType, Snapshot } from './types'
 export const KNOWN_TYPES: ReadonlySet<string> = new Set<KnownType>([
   'game_start', 'game_end', 'act_begin', 'act_end', 'scene_begin',
   'player_line', 'agent_line', 'reveal', 'prop_gained', 'card_draw', 'review',
-  'choice', 'error', 'clue_found', 'journal_push',
+  'choice', 'death', 'error', 'clue_found', 'journal_push',
 ])
 
 type Raw = Record<string, unknown>

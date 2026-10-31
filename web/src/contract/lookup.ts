@@ -13,5 +13,7 @@ export const findAsset = (b: Bundle, id?: string) => (id ? b.assets?.find((a) =>
 /** 合同字段是 uri；url 兜底 */
 export const assetSrc = (a?: { uri?: unknown; url?: unknown }) =>
   typeof a?.uri === 'string' && a.uri ? a.uri : typeof a?.url === 'string' && a.url ? a.url : undefined
+export const findClue = (b: Bundle, id?: string) => b.clues?.find((c) => c.clue_id === id)
+export const findEnding = (b: Bundle, id?: string) => b.endgame.conditions.find((c) => c.id === id)
 export const findChoice = (b: Bundle, id?: string) => b.acts.flatMap((a) => a.scenes).flatMap((s) => s.choices ?? []).find((c) => c.id === id)
 export const playerOf = (b: Bundle) => b.characters.find((c) => c.is_player)

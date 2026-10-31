@@ -1,9 +1,11 @@
+import { findClue, findEnding } from '../contract/lookup'
 import { emptySnapshot, errorCopy, parseChannel, pickText, revealText } from '../contract/normalize'
 import type { Bundle, GameEvent, Snapshot } from '../contract/types'
 
 export interface RevealItem { key: string; text: string | null; seq: number; sceneId?: string }
 export interface PushItem { id: string; title: string | null; text: string | null; seq: number }
 export interface ErrorItem { code: string; message: string; seq: number }
+export interface EndingItem { id: string; title: string | null; text: string | null }
 export interface ChoiceItem { id: string; label: string; characterId?: string; seq: number }
 
 /** 回放到某一 seq 时的完整画面。snapshot 部分与服务端 snapshot 同形，终局时可直接对拍。 */
@@ -17,6 +19,7 @@ export interface Frame {
   /** 本幕 DM 发出的行动卡（落幕清空） */
   choices: ChoiceItem[]
   reviewText: string | null
+  ending: EndingItem | null
   /** key = 'main' 或 dm 角色 id */
   threads: Record<string, GameEvent[]>
   lastSeq: number
@@ -27,9 +30,9 @@ export function initialFrame(bundle: Bundle): Frame {
   snapshot.bundle_id = bundle.id
   snapshot.degradation_tier = 'tangwu' // 合同默认档
   for (const c of bundle.characters) {
-    snapshot.character_states[c.id] = { on_stage: true, lines_spoken: 0, knowledge_unlocked: [] }
+    snapshot.character_states[c.id] = { on_stage: true, alive: true, lines_spoken: 0, knowledge_unlocked: [] }
   }
-  return { snapshot, phase: 'pregame', reveals: [], clues: [], journal: [], errors: [], choices: [], reviewText: null, threads: { main: [] }, lastSeq: -1 }
+  return { snapshot, phase: 'pregame', reveals: [], clues: [], journal: [], errors: [], choices: [], reviewText: null, ending: null, threads: { main: [] }, lastSeq: -1 }
 }
 
 const threadKey = (e: GameEvent) => {
@@ -60,7 +63,18 @@ export function applyEvent(f: Frame, e: GameEvent, bundle: Bundle): Frame {
     case 'game_end':
       next.phase = 'ended'
       if (e.review_text) next.reviewText = e.review_text
+      if (e.ending_id) {
+        next.ending = { id: e.ending_id, title: e.ending_title || null, text: e.ending_text || null }
+        // 引擎在 game_end 时把结局 CG 记进快照；回放时按结局表推回来
+        const cg = findEnding(bundle, e.ending_id)?.cg_id
+        if (cg) s.cg_unlocked = uniq(s.cg_unlocked, cg)
+      }
       break
+    case 'death': {
+      const cs = s.character_states[e.character_id]
+      if (cs) s.character_states = { ...s.character_states, [e.character_id]: { ...cs, alive: false } }
+      break
+    }
     case 'act_begin':
       s.act_id = e.act_id
       s.scene_id = null
@@ -104,9 +118,11 @@ export function applyEvent(f: Frame, e: GameEvent, bundle: Bundle): Frame {
       next.errors = [...f.errors, { code: e.error_code, message: errorCopy(e.error_code, pickText(e, ['text', 'message'])), seq: e.seq }]
       if (typeof e.degradation_tier === 'string') s.degradation_tier = e.degradation_tier
       break
-    case 'clue_found':
-      next.clues = [...f.clues, { id: e.clue_id ?? String(e.seq), title: null, text: pickText(e), seq: e.seq }]
+    case 'clue_found': {
+        const def = findClue(bundle, e.clue_id)
+        next.clues = [...f.clues, { id: e.clue_id ?? String(e.seq), title: def?.title ?? null, text: pickText(e) ?? def?.text ?? null, seq: e.seq }]
       break
+    }
     case 'journal_push':
       next.journal = [...f.journal, { id: String(e.seq), title: null, text: e.journal_text ?? pickText(e), seq: e.seq }]
       break

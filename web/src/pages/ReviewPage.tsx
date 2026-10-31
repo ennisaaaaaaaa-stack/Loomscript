@@ -19,6 +19,13 @@ export function ReviewPage() {
     <div className="review">
       <section className="review__dm">
         <h2>DM 复盘</h2>
+        {frame.ending && (
+          <div className="ending">
+            <small>结局</small>
+            <strong>{frame.ending.title ?? frame.ending.id}</strong>
+            {frame.ending.text && <p>{frame.ending.text}</p>}
+          </div>
+        )}
         {frame.reviewText ? <blockquote>{frame.reviewText}</blockquote> : <p className="muted">还没有 review 事件{cursor < maxSeq ? '（回放未到终局）' : ''}。</p>}
         {b.endgame.review_prompt && <p className="muted">复盘引子：{b.endgame.review_prompt}</p>}
         <h4>结局集</h4>

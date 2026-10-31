@@ -33,11 +33,15 @@ export interface Scene extends Extra {
   choices?: Choice[]
 }
 
+export interface Interlude extends Extra { text?: string; image_id?: string }
+
 export interface Act extends Extra {
   act_id: string
   title: string
   world_info: string
   scenes: Scene[]
+  /** 本幕收尾过场；act_end 事件会回显同样的内容 */
+  interlude?: Interlude
 }
 
 export interface Prop extends Extra {
@@ -57,6 +61,22 @@ export interface EndCondition extends Extra {
   id: string
   description: string
   cg_id?: string
+}
+
+/** 线索总表。clue_found 事件只带 clue_id，标题和正文从这里查 */
+export interface ClueDef extends Extra {
+  clue_id: string
+  title: string
+  text: string
+  visible_at: string
+}
+
+export interface DeathDef extends Extra {
+  id: string
+  character_id: string
+  act_id: string
+  scene_id: string
+  description: string
 }
 
 /** v0.1：资产清单。scene.image_id / props.cg_id / 卡面都指向这里 */
@@ -80,6 +100,8 @@ export interface Bundle extends Extra {
   endgame: { conditions: EndCondition[]; review_prompt?: string } & Extra
   /** v0.1 */
   assets?: Asset[]
+  clues?: ClueDef[]
+  deaths?: DeathDef[]
 }
 
 // ---------- events（时间线） ----------
@@ -97,12 +119,13 @@ interface EventBase extends Extra {
 
 export type KnownEvent =
   | (EventBase & { type: 'game_start' })
-  | (EventBase & { type: 'game_end'; review_text?: string | null })
+  /** 结局随事件下发（ending_*），不预发货 */
+  | (EventBase & { type: 'game_end'; review_text?: string | null; ending_id?: string; ending_title?: string; ending_text?: string })
   | (EventBase & { type: 'act_begin'; act_id: string })
-  | (EventBase & { type: 'act_end'; act_id: string })
+  | (EventBase & { type: 'act_end'; act_id: string; interlude?: Interlude })
   | (EventBase & { type: 'scene_begin'; act_id: string; scene_id: string })
   /** character_id 可能是 'dm'（主持人，不在 bundle.characters 里） */
-  | (EventBase & { type: 'player_line' | 'agent_line'; character_id: string; act_id?: string; scene_id?: string; text: string })
+  | (EventBase & { type: 'player_line' | 'agent_line'; character_id: string; act_id?: string; scene_id?: string; text: string; pose?: string })
   /** DM 发的行动卡，前端翻牌；text = 卡面文字 */
   | (EventBase & { type: 'choice'; character_id?: string; choice_id: string; text?: string; act_id?: string; scene_id?: string })
   | (EventBase & {
@@ -113,6 +136,8 @@ export type KnownEvent =
       /** v0.1：与 reveal_keys 一一对应的展示文字，揭示瞬间随事件下发 */
       reveal_texts?: string[]
     })
+  /** 引擎进入死亡场景时确定性触发；text = 死亡叙述 */
+  | (EventBase & { type: 'death'; death_id: string; character_id: string; text?: string; act_id?: string; scene_id?: string })
   | (EventBase & { type: 'prop_gained'; act_id?: string; prop_id: string })
   | (EventBase & { type: 'card_draw'; act_id?: string; card_id: string })
   | (EventBase & { type: 'review'; review_text: string | null })
@@ -133,6 +158,8 @@ export type GameEvent = KnownEvent | UnknownEvent
 
 export interface CharacterState extends Extra {
   on_stage: boolean
+  /** 缺省视为活着；死后转观演 */
+  alive?: boolean
   lines_spoken: number
   knowledge_unlocked: string[]
 }
