@@ -1,0 +1,28 @@
+{"ts": "2026-10-31T11:41:51", "stage": "parse_input", "msg": "run parse_input"}
+{"ts": "2026-10-31T11:41:51", "stage": "build_acts", "msg": "run build_acts"}
+{"ts": "2026-10-31T11:43:09", "stage": "gen_characters", "msg": "run gen_characters:tajuumaru"}
+{"ts": "2026-10-31T11:43:09", "stage": "gen_characters", "msg": "run gen_characters:woman"}
+{"ts": "2026-10-31T11:43:38", "stage": "gen_characters", "msg": "run gen_characters:samurai"}
+{"ts": "2026-10-31T11:43:44", "stage": "gen_characters", "msg": "run gen_characters:masago"}
+{"ts": "2026-10-31T11:44:16", "stage": "gen_characters", "msg": "run gen_characters:woodcutter"}
+{"ts": "2026-10-31T11:44:44", "stage": "gen_actor_turns_per_act", "msg": "run gen_actor_turns:A1"}
+{"ts": "2026-10-31T11:44:44", "stage": "gen_actor_turns_per_act", "msg": "run gen_actor_turns:A2"}
+{"ts": "2026-10-31T11:44:46", "stage": "gen_actor_turns_per_act", "msg": "run gen_actor_turns:A3"}
+{"ts": "2026-10-31T11:44:57", "stage": "gen_actor_turns_per_act", "msg": "run gen_actor_turns:A4"}
+{"ts": "2026-10-31T11:45:08", "stage": "gen_cg_list", "msg": "run gen_cg_list"}
+{"ts": "2026-10-31T11:45:08", "stage": "gen_props_journal", "msg": "run gen_props_journal"}
+{"ts": "2026-10-31T11:45:35", "stage": "parse_input", "msg": "skip parse_input (done)"}
+{"ts": "2026-10-31T11:45:35", "stage": "build_acts", "msg": "skip build_acts (done)"}
+{"ts": "2026-10-31T11:45:35", "stage": "gen_characters", "msg": "skip gen_characters:tajuumaru (done)"}
+{"ts": "2026-10-31T11:45:35", "stage": "gen_characters", "msg": "skip gen_characters:woman (done)"}
+{"ts": "2026-10-31T11:45:35", "stage": "gen_characters", "msg": "skip gen_characters:samurai (done)"}
+{"ts": "2026-10-31T11:45:35", "stage": "gen_characters", "msg": "skip gen_characters:masago (done)"}
+{"ts": "2026-10-31T11:45:35", "stage": "gen_characters", "msg": "skip gen_characters:woodcutter (done)"}
+{"ts": "2026-10-31T11:45:35", "stage": "gen_actor_turns_per_act", "msg": "skip gen_actor_turns:A2 (done)"}
+{"ts": "2026-10-31T11:45:35", "stage": "gen_actor_turns_per_act", "msg": "skip gen_actor_turns:A1 (done)"}
+{"ts": "2026-10-31T11:45:35", "stage": "gen_actor_turns_per_act", "msg": "skip gen_actor_turns:A3 (done)"}
+{"ts": "2026-10-31T11:45:35", "stage": "gen_actor_turns_per_act", "msg": "skip gen_actor_turns:A4 (done)"}
+{"ts": "2026-10-31T11:45:35", "stage": "gen_cg_list", "msg": "run gen_cg_list"}
+{"ts": "2026-10-31T11:45:35", "stage": "gen_props_journal", "msg": "run gen_props_journal"}
+{"ts": "2026-10-31T11:45:52", "stage": "validate_bundle", "msg": "run validate_bundle"}
+{"ts": "2026-10-31T11:45:52", "stage": "validate_bundle", "msg": "DAG complete"}
