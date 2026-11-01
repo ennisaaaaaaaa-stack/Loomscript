@@ -23,6 +23,8 @@ export function ReplayBar() {
 
   return (
     <div className="replay">
+      <span className="replay__badge" title="当前是录制的对局回放，不是实时局。发言框在回放模式下是关的。">回放 · 静态录制</span>
+      <a className="replay__golive" href="#/library">去剧本库开真局 →</a>
       <button className="ghost" title="回到开头" onClick={() => { setPlaying(false); setCursor(-1) }}>⏮</button>
       <button className="ghost" title="上一个事件" onClick={() => step(-1)}>◀</button>
       <button
